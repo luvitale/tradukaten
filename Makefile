@@ -2,14 +2,14 @@ LEX=flex
 BISON=bison
 CC=gcc
 
-analyzer.app: lex.yy.c y.tab.c
-	$(CC) lex.yy.c y.tab.c -o analyzer.app
+tradukaten.app: lex.yy.c y.tab.c
+	$(CC) lex.yy.c y.tab.c -o tradukaten.app
 
-lex.yy.c: lexical.l
-	$(LEX) -o lex.yy.c lexical.l
+lex.yy.c: Lexico.l
+	$(LEX) -o lex.yy.c Lexico.l
 
-y.tab.c: syntactic.y
-	$(BISON) -dyv syntactic.y
+y.tab.c: Sintactico.y
+	$(BISON) -dyv Sintactico.y
 
 clean:
 	rm -f *.yy.* *.app *.exe *.tab.* *.output
