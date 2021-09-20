@@ -1,0 +1,19 @@
+# Tradukaten
+
+[![en](https://img.shields.io/badge/lang-en-red.svg)](README.md)
+[![eo](https://img.shields.io/badge/lang-eo-green.svg)](README.eo.md)
+[![es](https://img.shields.io/badge/lang-es-yellow.svg)](README.es.md)
+
+Tradukaten (from Esperanto: Traduka Kateno, translation chain) is a compiler done for [Languages and Compilers](https://polr.luvitale.net/unlam-languages-and-compilers) subject of [Informatics Engineering](https://polr.luvitale.net/unlam-informatics-engineering) career from [Universidad Nacional de La Matanza](https://www.unlam.edu.ar).
+
+## Install dependencies
+
+* [GCC](https://gcc.gnu.org/)
+* [Flex](https://github.com/westes/flex)
+* [Bison](https://www.gnu.org/software/bison/)
+
+## Compile
+
+```
+make
+```
