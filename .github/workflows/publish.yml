@@ -11,6 +11,10 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
+      - name: Install dependencies
+        run: choco install --verbose mingw make winflexbison3
+        if: startsWith(matrix.os, 'windows')
+    
       - uses: actions/checkout@v2
       - name: Build
         run: make
