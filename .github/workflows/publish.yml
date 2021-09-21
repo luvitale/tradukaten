@@ -41,7 +41,7 @@ jobs:
       - name: Get Version Name
         id: get_version_name
         env:
-          VERSION_WITHOUT_V: ${{ steps.get_version.output.version.without-v }}
+          VERSION_WITHOUT_V: ${{ steps.get_version.outputs.version-without-v }}
         run: echo '::set-output name=version_name::${VERSION_WITHOUT_V//./_}'
 
       - name: Upload binaries to release
