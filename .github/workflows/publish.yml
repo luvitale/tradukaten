@@ -43,7 +43,7 @@ jobs:
         run: |
           VERSION_WITHOUT_V=${{ steps.get_version.output.version.without-v }}
           VERSION_NAME=${VERSION_WITHOUT_V//./_}
-          echo '::set-output name=version_name::${VERSION_NAME}'
+          echo '::set-output name=version_name::${{ VERSION_NAME }}'
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
