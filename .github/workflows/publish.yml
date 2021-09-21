@@ -32,6 +32,6 @@ jobs:
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: target/release/tradukaten.app
+          file: tradukaten.app
           asset_name: tradukaten-${{ matrix.os }}-${{ steps.get_version.outputs.VERSION }}
           tag: ${{ github.ref }}
