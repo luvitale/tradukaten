@@ -40,12 +40,11 @@ jobs:
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         env:
           VERSION_WITHOUT_V: ${{ steps.get_version.outputs.version-without-v }}
-          VERSION_NAME: ${VERSION_WITHOUT_V//./_}
-        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: tradukaten.${{ matrix.extension }}
-          asset_name: tradukaten-${{ matrix.os_name }}-$VERSION_NAME.${{ matrix.extension }}
+          asset_name: tradukaten-${{ matrix.os_name }}-${VERSION_WITHOUT_V//./_}.${{ matrix.extension }}
           tag: ${{ github.ref }}
