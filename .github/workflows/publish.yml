@@ -50,7 +50,7 @@ jobs:
         id: set_env_with_version
         env:
           VERSION: ${{ steps.get_version.outputs.value }}
-        run: echo "VERSION_NAME=$(echo ${VERSION//./_})" >> $GITHUB_ENV
+        run: echo "VERSION_NAME=$(echo $VERSION)" >> $env:GITHUB_ENV
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
