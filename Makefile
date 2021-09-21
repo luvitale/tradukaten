@@ -11,5 +11,8 @@ lex.yy.c: Lexico.l
 y.tab.c: Sintactico.y
 	$(BISON) -dyv Sintactico.y
 
+test: tradukaten.app
+	true
+
 clean:
 	rm -f *.yy.* *.app *.exe *.tab.* *.output
