@@ -18,7 +18,7 @@
   char *yytext;
 
   int yylex();
-int yyerror(char *);
+  int yyerror(char *);
 %}
 
 %token id;
