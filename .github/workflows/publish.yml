@@ -10,23 +10,23 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         include:
-        - os: ubuntu-latest
-          os_name: ubuntu
-          extension: app
+          - os: ubuntu-latest
+            os_name: ubuntu
+            extension: app
 
-        - os: windows-latest
-          os_name: windows
-          extension: exe
+          - os: windows-latest
+            os_name: windows
+            extension: exe
 
-        - os: macos-latest
-          os_name: macos
-          extension: app
+          - os: macos-latest
+            os_name: macos
+            extension: app
 
     steps:
       - name: Install dependencies
         run: choco install --verbose mingw make winflexbison3
         if: startsWith(matrix.os, 'windows')
-    
+
       - uses: actions/checkout@v2
       - name: Build
         run: make
@@ -37,13 +37,6 @@ jobs:
       - name: Get Version
         id: get_version
         uses: battila7/get-version-action@v2
-
-      - name: Get Version Name
-        id: get_version_name
-        run: |
-          VERSION_WITHOUT_V=${{ steps.get_version.output.version.without-v }}
-          VERSION_NAME=${VERSION_WITHOUT_V//./_}
-          echo '::set-output name=version_name::${{ VERSION_NAME }}'
 
       - name: Get Version Name
         id: get_version_name
