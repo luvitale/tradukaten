@@ -1,9 +1,15 @@
-LEX=flex
-BISON=bison
 CC=gcc
 
+ifeq ($(OS),Windows_NT)
+	LEX=win_flex
+	BISON=win_bison
+else
+	LEX=flex
+	BISON=bison
+endif
+
 tradukaten.app: lex.yy.c y.tab.c
-	$(CC) lex.yy.c y.tab.c -o tradukaten.app
+	$(CC) lex.yy.c y.tab.c -o tradukaten.app -fcommon
 
 lex.yy.c: Lexico.l
 	$(LEX) -o lex.yy.c Lexico.l
