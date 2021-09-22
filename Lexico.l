@@ -3,10 +3,13 @@
   #include <stdlib.h>
   #include "y.tab.h"
 
-  FILE *yyin;
-
-  int yylval;
   int lineno = 1;
+
+  int MIN_INT = -32768;
+  int MAX_INT = 32767;
+  double MIN_REAL = -2147483648.0;
+  double MAX_REAL = 2147483647.0;
+  int MAX_STRING = 100;
 
   int yyerror(char *);
 %}
@@ -19,6 +22,11 @@ digit (0|{natural_digit})
 uppercase_letter [A-ZÁÉÍÓÚÑĈĜĤĴŜŬ]
 lowercase_letter [a-záéíóúñĉĝĥĵŝŭ]
 letter ({uppercase_letter}|{lowercase_letter})
+dot "."
+
+/*
+ * Operators
+ */
 
 op_assign (":="|"<-")
 
@@ -27,6 +35,9 @@ op_sub "-"
 op_mult "*"
 op_div "/"
 
+/*
+ * Comparators
+ */
 op_eq ("="|"==")
 op_lt "<"
 op_le "<="
@@ -37,12 +48,23 @@ op_ne ("!="|"<>"|"~=")
 op_and ("&&"|"AND"|"and"|"And")
 op_or ("||"|"OR"|"or"|"Or")
 
+/*
+ * Identifier
+ */
+
 id {letter}(_?({letter}|{digit}))*
+
+/*
+ * Constants
+ */
+
 int_constant {op_sub}?{digit}+
-real_constant {digit}*\.{digit}*
+real_constant {op_sub}?({digit}*{dot}{digit}|{digit}+{dot}{digit}*)
 string_constant \".*?\"
 
-separator ";"
+/*
+ * Reserved Words
+ */
 
 op_if ("if"|"IF"|"If"|"?<")
 op_endif ("endif"|"ENDIF"|"Endif"|"EndIf"|">?")
@@ -53,27 +75,49 @@ op_endwhile ("endwhile"|"ENDWHILE"|"Endwhile"|"EndWhile"|">@")
 op_dim ("dim"|"DIM"|"Dim"|"$<"|"₿<")
 op_as ("as"|"AS"|"As"|">$"|">₿")
 
-int_type ("integer"|"INTEGER"|"Integer"|"$Z"|"₿Z")
-real_type ("real"|"REAL"|"Real"|"$R"|"₿R")
-string_type ("string"|"STRING"|"String"|"$\""|"₿\"")
-
-open_dec "["
-close_dec "]"
-
-dec_separator ","
-
-open_parenthesis "("
-close_parenthesis ")"
-
 op_display ("display"|"DISPLAY"|"Display"|"$<<"|"₿<<")
 op_get ("get"|"GET"|"Get"|"$>>"|"₿>>")
 
-comment "*/".*"/*"
+/*
+ * Specials
+ */
 
 fun_long ("long"|"_>")
 
 op_in ("in"|"IN"|"In"|"@$"|"@₿")
 op_do ("do"|"DO"|"Do"|"$@"|"₿@")
+
+/*
+ * Types
+ */
+
+int_type ("integer"|"INTEGER"|"Integer"|"$Z"|"₿Z")
+real_type ("real"|"REAL"|"Real"|"$R"|"₿R")
+string_type ("string"|"STRING"|"String"|"$\""|"₿\"")
+
+/*
+ * Groupers
+ */
+
+open_dec "["
+close_dec "]"
+
+open_parenthesis "("
+close_parenthesis ")"
+
+/*
+ * Separators
+ */
+
+separator ";"
+
+dec_separator ","
+
+/*
+ * Comment
+ */
+
+comment "*/".*"/*"
 
 %%
 {op_dim} {
@@ -191,17 +235,87 @@ op_do ("do"|"DO"|"Do"|"$@"|"₿@")
 }
 
 {int_constant} {
+  int value = strtol(yytext,(char **)NULL,10);
+
+  char msg[MAX_STRING + strlen(yytext)];
+
+  if(value < MIN_INT) {
+    sprintf(msg, "integer constant out of range: %s, min: %d", yytext, MIN_INT);
+
+    yyerror(msg);
+  }
+  
+  else if(value > MAX_INT) {
+    sprintf(msg, "integer constant out of range: %s, max: %d", yytext, MAX_INT);
+
+    yyerror(msg);
+  }
+  
+  else {
+    yylval.int_val = value;
+  }
+
   return int_constant;
 }
 {real_constant} {
+  double value = atof(yytext);
+
+  char msg[MAX_STRING + strlen(yytext)];
+
+  if (value < MIN_REAL || value > MAX_REAL || strlen(yytext) > 32) {
+    sprintf(
+      msg,
+      "real constant out of range: %s, min: %f, max: %f",
+      yytext, MIN_REAL, MAX_REAL
+    );
+
+    yyerror(msg);
+  }
+
+  printf("yytext: %f\n", value);
+
+  yylval.float_val = value;
+
   return real_constant;
 }
 
 {string_constant} {
+  int STRING_LENGTH = strlen(yytext);
+
+  char msg[STRING_LENGTH + MAX_STRING];
+
+  if(STRING_LENGTH > MAX_STRING) {
+    sprintf(
+      msg,
+      "string out of range: %s, length: %d, max: %d",
+      yytext, STRING_LENGTH, MAX_STRING
+    );
+
+    yyerror(msg);
+  }
+
+  yylval.str_val = yytext;
+
   return string_constant;
 }
 
 {id} {
+  int STRING_LENGTH = strlen(yytext);
+
+  char msg[STRING_LENGTH + MAX_STRING];
+
+  if(STRING_LENGTH > MAX_STRING) {
+    sprintf(
+      msg,
+      "id out of range: %s, length: %d, max: %d",
+      yytext, STRING_LENGTH, MAX_STRING
+    );
+
+    yyerror(msg);
+  }
+
+  yylval.str_val = yytext;
+
   return id;
 }
 

@@ -10,7 +10,6 @@
 
   int lineno;
 
-  int yylval;
   int yystopparser = 0;
 
   FILE *yyin;
@@ -24,30 +23,36 @@
   void show_help(char *);
 %}
 
-%token id;
-%token int_constant real_constant;
-%token string_constant;
+%union {
+  int int_val;
+  double float_val;
+  char *str_val;
+}
 
-%token op_assign;
-%token op_sum op_sub op_mult op_div;
-%token separator;
+%token id
+%token int_constant real_constant
+%token string_constant
 
-%token op_eq op_lt op_le op_gt op_ge op_ne;
-%token op_and op_or;
+%token op_assign
+%token op_sum op_sub op_mult op_div
+%token separator
 
-%token op_if op_endif;
-%token op_while op_endwhile;
-%token open_parenthesis close_parenthesis;
+%token op_eq op_lt op_le op_gt op_ge op_ne
+%token op_and op_or
 
-%token op_dim op_as;
-%token open_dec close_dec;
-%token dec_separator;
-%token int_type real_type string_type;
+%token op_if op_endif
+%token op_while op_endwhile
+%token open_parenthesis close_parenthesis
 
-%token op_display op_get;
+%token op_dim op_as
+%token open_dec close_dec
+%token dec_separator
+%token int_type real_type string_type
 
-%token fun_long;
-%token op_in op_do;
+%token op_display op_get
+
+%token fun_long
+%token op_in op_do
 
 %%
 PROGRAM: CODE;
@@ -111,7 +116,7 @@ ITERATION: op_while open_parenthesis CONDITION close_parenthesis CODE op_endwhil
 };
 
 DECLARATION: op_dim open_dec VARIABLES close_dec op_as open_dec DATATYPES close_dec {
-  printf("DIM [var1, var2, var3] AS [integer, real, string]\n");
+  printf("dim [VARIABLES] as [DATATYPES];\n");
 };
 
 EXPRESSION: EXPRESSION op_sum TERM
@@ -123,6 +128,7 @@ TERM: TERM op_mult FACTOR
 | FACTOR;
 
 FACTOR: open_parenthesis EXPRESSION close_parenthesis
+| LENGTH
 | id
 | CONSTANT;
 

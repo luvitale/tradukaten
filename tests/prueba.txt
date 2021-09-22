@@ -3,20 +3,33 @@ dim [ akum, total, rezult, nomo ] as [ integer, real, string, string ];
 akum := 0;
 akum := akum + 1;
 
-akum := 0.0;
+*/ int out of range (min) /*
+*/ akum := -32769 /*
+
+*/ int out of range (max) /*
+*/ akum := 32768 /*
+
+total := 0.0;
+
+*/ real out of range (min) /*
+*/ total := -2147483649.0; /*
+
+*/ real out of range (max) /*
+*/ total := 2147483648.0; /*
 
 if (akum = 1 && total = 0.0)
   total := akum * (2 + 1.14);
   akum := akum + 1;
 
   rezult := "korekte";
+
+  */ string out of range /*
+  */ rezult := "korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte"; /*
 endif
 
 while (akum <= 10)
-  akum := akum + 2;
+  akum := akum + long([akum, total]);
 endwhile
-
-long([akum, total]);
 
 while nomo in ["Tero", "Luno", "Marso"] do
   display "Saluton " + nomo;
