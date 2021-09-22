@@ -72,12 +72,22 @@ comment "*/".*"/*"
 
 fun_long ("long"|"_>")
 
+op_in ("in"|"IN"|"In"|"@$"|"@₿")
+op_do ("do"|"DO"|"Do"|"$@"|"₿@")
+
 %%
 {op_dim} {
   return op_dim;
 }
 {op_as} {
   return op_as;
+}
+
+{op_in} {
+  return op_in;
+}
+{op_do} {
+  return op_do;
 }
 
 {op_display} {

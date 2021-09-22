@@ -18,6 +18,10 @@ endwhile
 
 long([akum, total]);
 
+while nomo in ["Tero", "Luno", "Marso"] do
+  display "Saluton " + nomo;
+endwhile
+
 display "Saluton Mondo!";
 get nomo;
 display "Saluton " + nomo;

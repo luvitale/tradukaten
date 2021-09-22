@@ -47,6 +47,7 @@
 %token op_display op_get;
 
 %token fun_long;
+%token op_in op_do;
 
 %%
 PROGRAM: CODE;
@@ -105,6 +106,8 @@ COMPARATOR: op_eq | op_lt | op_le | op_gt | op_ge | op_ne;
 
 ITERATION: op_while open_parenthesis CONDITION close_parenthesis CODE op_endwhile {
   printf("while ( CONDITION ) CODE endwhile\n");
+} | op_while id op_in LIST op_do CODE op_endwhile {
+  printf("while id in LIST do CODE endwhile\n");
 };
 
 DECLARATION: op_dim open_dec VARIABLES close_dec op_as open_dec DATATYPES close_dec {
