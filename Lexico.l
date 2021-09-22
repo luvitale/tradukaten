@@ -65,6 +65,9 @@ dec_separator ","
 open_parenthesis "("
 close_parenthesis ")"
 
+op_display ("display"|"DISPLAY"|"Display"|"$<<")
+op_get ("get"|"GET"|"Get"|"$>>")
+
 comment "*/".*"/*"
 
 %%
@@ -73,6 +76,13 @@ comment "*/".*"/*"
 }
 {op_as} {
   return op_as;
+}
+
+{op_display} {
+  return op_display;
+}
+{op_get} {
+  return op_get;
 }
 
 {dec_separator} {

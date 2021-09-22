@@ -1,17 +1,21 @@
-dim [ acc, total, result ] as [ integer, real, string ];
+dim [ akum, total, rezult, nomo ] as [ integer, real, string, string ];
 
-acc := 0;
-acc := acc + 1;
+akum := 0;
+akum := akum + 1;
 
-total := 0.0;
+akum := 0.0;
 
-if (acc = 1 && total = 0.0)
-  total := acc * (2 + 1.14);
-  acc := acc + 1;
+if (akum = 1 && total = 0.0)
+  total := akum * (2 + 1.14);
+  akum := akum + 1;
 
-  result := "correct";
+  rezult := "korekte";
 endif
 
-while (acc <= 10)
-  acc := acc + 2;
+while (akum <= 10)
+  akum := akum + 2;
 endwhile
+
+display "Saluton Mondo!";
+get nomo;
+display "Saluton " + nomo;

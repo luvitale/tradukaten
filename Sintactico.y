@@ -44,6 +44,8 @@
 %token dec_separator;
 %token int_type real_type string_type;
 
+%token op_display op_get;
+
 %%
 PROGRAM: CODE;
 
@@ -51,8 +53,18 @@ CODE: CODE BLOCK | BLOCK;
 
 BLOCK: DECLARATION separator
 | ASSIGNMENT separator
+| INPUT separator
+| OUTPUT separator
 | DECISION
 | ITERATION;
+
+INPUT: op_get id {
+  printf("get id\n");
+};
+
+OUTPUT: op_display EXPRESSION {
+  printf("display EXPRESSION\n");
+};
 
 ASSIGNMENT: id op_assign EXPRESSION {
   printf("id <- EXPRESSION;\n");
