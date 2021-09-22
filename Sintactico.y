@@ -22,15 +22,33 @@
 %}
 
 %token id;
+%token int_constant;
+
+%token op_assign;
+%token op_sum op_sub op_mult op_div;
+%token separator_assign;
+
+%token op_eq op_lt op_le op_gt op_ge op_ne;
 
 %%
 PROGRAM: CODE;
 
-CODE: CODE LINE | LINE;
+CODE: CODE BLOCK | BLOCK;
 
-LINE: EXPRESSION;
+BLOCK: ASSIGNMENT separator_assign;
 
-EXPRESSION: id;
+ASSIGNMENT: id op_assign EXPRESSION
+          | id op_assign ASSIGNMENT;
+
+EXPRESSION: EXPRESSION op_sum FACTOR
+          | EXPRESSION op_sub FACTOR
+          | FACTOR;
+
+FACTOR: FACTOR op_mult TERM
+      | FACTOR op_div TERM
+      | TERM;
+
+TERM: id | int_constant;
 %%
 
 int main(int argc,char *argv[]) {
