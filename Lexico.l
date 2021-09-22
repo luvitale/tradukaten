@@ -65,6 +65,8 @@ dec_separator ","
 open_parenthesis "("
 close_parenthesis ")"
 
+comment "*/".*"/*"
+
 %%
 {op_dim} {
   return op_dim;
@@ -176,6 +178,8 @@ close_parenthesis ")"
 {id} {
   return id;
 }
+
+{comment} /* skip comments */
 
 " "
 "\n" {
