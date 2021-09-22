@@ -16,6 +16,8 @@ while (akum <= 10)
   akum := akum + 2;
 endwhile
 
+long([akum, total]);
+
 display "Saluton Mondo!";
 get nomo;
 display "Saluton " + nomo;

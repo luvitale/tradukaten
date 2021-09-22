@@ -65,10 +65,12 @@ dec_separator ","
 open_parenthesis "("
 close_parenthesis ")"
 
-op_display ("display"|"DISPLAY"|"Display"|"$<<")
-op_get ("get"|"GET"|"Get"|"$>>")
+op_display ("display"|"DISPLAY"|"Display"|"$<<"|"₿<<")
+op_get ("get"|"GET"|"Get"|"$>>"|"₿>>")
 
 comment "*/".*"/*"
+
+fun_long ("long"|"_>")
 
 %%
 {op_dim} {
@@ -94,6 +96,10 @@ comment "*/".*"/*"
 }
 {close_dec} {
   return close_dec;
+}
+
+{fun_long} {
+  return fun_long;
 }
 
 {int_type} {

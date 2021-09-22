@@ -46,6 +46,8 @@
 
 %token op_display op_get;
 
+%token fun_long;
+
 %%
 PROGRAM: CODE;
 
@@ -55,15 +57,26 @@ BLOCK: DECLARATION separator
 | ASSIGNMENT separator
 | INPUT separator
 | OUTPUT separator
+| LENGTH separator
 | DECISION
 | ITERATION;
 
+LENGTH: fun_long open_parenthesis LIST close_parenthesis {
+  printf("long(LIST);\n");
+};
+
+LIST: open_dec ITEMS close_dec;
+
+ITEMS: ITEMS dec_separator ITEM | ITEM;
+
+ITEM: CONSTANT | id;
+
 INPUT: op_get id {
-  printf("get id\n");
+  printf("get id;\n");
 };
 
 OUTPUT: op_display EXPRESSION {
-  printf("display EXPRESSION\n");
+  printf("display EXPRESSION;\n");
 };
 
 ASSIGNMENT: id op_assign EXPRESSION {
