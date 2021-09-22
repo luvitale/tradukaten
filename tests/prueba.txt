@@ -1,2 +1,11 @@
 acc := 0;
 acc := acc + 1;
+
+total := 0.0;
+
+if (acc = 1 && total = 0.0)
+  total := acc * (2 + 1.14);
+  acc := acc + 1;
+
+  result := "correct";
+endif

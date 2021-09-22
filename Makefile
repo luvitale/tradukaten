@@ -20,7 +20,7 @@ y.tab.c: Sintactico.y
 	$(BISON) -dyv Sintactico.y
 
 test: tradukaten.app
-	true
+	./$(OBJECT_NAME) ./tests/prueba.txt
 
 clean:
 	rm -f *.yy.* *.app *.exe *.tab.* *.output

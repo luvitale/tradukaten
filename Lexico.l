@@ -34,18 +34,25 @@ op_gt ">"
 op_ge ">="
 op_ne ("!="|"<>"|"~=")
 
+op_and ("&&"|"AND"|"and"|"And")
+op_or ("||"|"OR"|"or"|"Or")
+
 id {letter}(_?({letter}|{digit}))*
 int_constant {op_sub}?{digit}+
+real_constant {digit}*\.{digit}*
+string_constant \".*?\"
 
 separator_assign ";"
+
+op_if ("if"|"IF"|"If")
+op_endif ("endif"|"ENDIF"|"Endif"|"EndIf")
+
+open_parenthesis "("
+close_parenthesis ")"
 
 %%
 {op_assign} {
   return op_assign;
-}
-
-{semicolon} {
-  return separator_assign;
 }
 
 {op_sum} {
@@ -59,6 +66,24 @@ separator_assign ";"
 }
 {op_div} {
   return op_div;
+}
+
+{separator_assign} {
+  return separator_assign;
+}
+
+{op_if} {
+  return op_if;
+}
+{op_endif} {
+  return op_endif;
+}
+
+{open_parenthesis} {
+  return open_parenthesis;
+}
+{close_parenthesis} {
+  return close_parenthesis;
 }
 
 {op_eq} {
@@ -80,8 +105,22 @@ separator_assign ";"
   return op_ne;
 }
 
+{op_and} {
+  return op_and;
+}
+{op_or} {
+  return op_or;
+}
+
 {int_constant} {
   return int_constant;
+}
+{real_constant} {
+  return real_constant;
+}
+
+{string_constant} {
+  return string_constant;
 }
 
 {id} {
