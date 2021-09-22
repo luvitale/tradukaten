@@ -28,6 +28,24 @@ choco install --verbose mingw make winflexbison3
 
 ## Compilar
 
+### Makefile
+
 ```
 make
+```
+
+### Manualmente
+
+```
+flex -o lex.yy.c Lexico.l
+bison -dyv Sintactico.y
+gcc lex.yy.c y.tab.c -o tradukaten.exe -fcommon
+```
+
+O
+
+```
+flex -o lex.yy.c Lexico.l
+bison -dyv Sintactico.y
+gcc lex.yy.c y.tab.c -o tradukaten.app -fcommon
 ```
