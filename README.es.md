@@ -12,6 +12,20 @@ Tradukaten (del esperanto Traduka Kateno, cadena de traducciones) es un compilad
 * [Flex](https://github.com/westes/flex)
 * [Bison](https://www.gnu.org/software/bison/)
 
+### APT
+
+```
+sudo apt-get update
+sudo apt-get -y install flex bison
+```
+
+### Chocolatey
+
+```
+choco upgrade chocolatey
+choco install --verbose mingw make winflexbison3
+```
+
 ## Compilar
 
 ```
