@@ -1,3 +1,5 @@
+dim [ acc, total, result ] as [ integer, real, string ];
+
 acc := 0;
 acc := acc + 1;
 

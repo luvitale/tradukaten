@@ -42,7 +42,7 @@ int_constant {op_sub}?{digit}+
 real_constant {digit}*\.{digit}*
 string_constant \".*?\"
 
-separator_assign ";"
+separator ";"
 
 op_if ("if"|"IF"|"If"|"?<")
 op_endif ("endif"|"ENDIF"|"Endif"|"EndIf"|">?")
@@ -50,10 +50,50 @@ op_endif ("endif"|"ENDIF"|"Endif"|"EndIf"|">?")
 op_while ("while"|"WHILE"|"While"|"@<")
 op_endwhile ("endwhile"|"ENDWHILE"|"Endwhile"|"EndWhile"|">@")
 
+op_dim ("dim"|"DIM"|"Dim"|"$<"|"₿<")
+op_as ("as"|"AS"|"As"|">$"|">₿")
+
+int_type ("integer"|"INTEGER"|"Integer"|"$Z"|"₿Z")
+real_type ("real"|"REAL"|"Real"|"$R"|"₿R")
+string_type ("string"|"STRING"|"String"|"$\""|"₿\"")
+
+open_dec "["
+close_dec "]"
+
+dec_separator ","
+
 open_parenthesis "("
 close_parenthesis ")"
 
 %%
+{op_dim} {
+  return op_dim;
+}
+{op_as} {
+  return op_as;
+}
+
+{dec_separator} {
+  return dec_separator;
+}
+
+{open_dec} {
+  return open_dec;
+}
+{close_dec} {
+  return close_dec;
+}
+
+{int_type} {
+  return int_type;
+}
+{real_type} {
+  return real_type;
+}
+{string_type} {
+  return string_type;
+}
+
 {op_assign} {
   return op_assign;
 }
@@ -71,8 +111,8 @@ close_parenthesis ")"
   return op_div;
 }
 
-{separator_assign} {
-  return separator_assign;
+{separator} {
+  return separator;
 }
 
 {op_if} {

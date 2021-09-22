@@ -30,7 +30,7 @@
 
 %token op_assign;
 %token op_sum op_sub op_mult op_div;
-%token separator_assign;
+%token separator;
 
 %token op_eq op_lt op_le op_gt op_ge op_ne;
 %token op_and op_or;
@@ -39,12 +39,18 @@
 %token op_while op_endwhile;
 %token open_parenthesis close_parenthesis;
 
+%token op_dim op_as;
+%token open_dec close_dec;
+%token dec_separator;
+%token int_type real_type string_type;
+
 %%
 PROGRAM: CODE;
 
 CODE: CODE BLOCK | BLOCK;
 
-BLOCK: ASSIGNMENT separator_assign
+BLOCK: DECLARATION separator
+| ASSIGNMENT separator
 | DECISION
 | ITERATION;
 
@@ -74,7 +80,11 @@ COMPARATOR: op_eq | op_lt | op_le | op_gt | op_ge | op_ne;
 
 ITERATION: op_while open_parenthesis CONDITION close_parenthesis CODE op_endwhile {
   printf("while ( CONDITION ) CODE endwhile\n");
-}
+};
+
+DECLARATION: op_dim open_dec VARIABLES close_dec op_as open_dec DATATYPES close_dec {
+  printf("DIM [var1, var2, var3] AS [integer, real, string]\n");
+};
 
 EXPRESSION: EXPRESSION op_sum TERM
 | EXPRESSION op_sub TERM
@@ -87,6 +97,13 @@ TERM: TERM op_mult FACTOR
 FACTOR: open_parenthesis EXPRESSION close_parenthesis
 | id
 | CONSTANT;
+
+VARIABLES: VARIABLES dec_separator id
+| id;
+DATATYPES: DATATYPES dec_separator DATATYPE
+| DATATYPE;
+
+DATATYPE: int_type | real_type | string_type;
 
 CONSTANT: int_constant | real_constant | string_constant;
 %%
