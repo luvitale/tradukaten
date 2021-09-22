@@ -44,8 +44,11 @@ string_constant \".*?\"
 
 separator_assign ";"
 
-op_if ("if"|"IF"|"If")
-op_endif ("endif"|"ENDIF"|"Endif"|"EndIf")
+op_if ("if"|"IF"|"If"|"?<")
+op_endif ("endif"|"ENDIF"|"Endif"|"EndIf"|">?")
+
+op_while ("while"|"WHILE"|"While"|"@<")
+op_endwhile ("endwhile"|"ENDWHILE"|"Endwhile"|"EndWhile"|">@")
 
 open_parenthesis "("
 close_parenthesis ")"
@@ -77,6 +80,13 @@ close_parenthesis ")"
 }
 {op_endif} {
   return op_endif;
+}
+
+{op_while} {
+  return op_while;
+}
+{op_endwhile} {
+  return op_endwhile;
 }
 
 {open_parenthesis} {

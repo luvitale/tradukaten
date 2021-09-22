@@ -36,6 +36,7 @@
 %token op_and op_or;
 
 %token op_if op_endif;
+%token op_while op_endwhile;
 %token open_parenthesis close_parenthesis;
 
 %%
@@ -44,7 +45,8 @@ PROGRAM: CODE;
 CODE: CODE BLOCK | BLOCK;
 
 BLOCK: ASSIGNMENT separator_assign
-| DECISION;
+| DECISION
+| ITERATION;
 
 ASSIGNMENT: id op_assign EXPRESSION {
   printf("id <- EXPRESSION;\n");
@@ -69,6 +71,10 @@ COMPARATION: EXPRESSION COMPARATOR EXPRESSION {
 };
 
 COMPARATOR: op_eq | op_lt | op_le | op_gt | op_ge | op_ne;
+
+ITERATION: op_while open_parenthesis CONDITION close_parenthesis CODE op_endwhile {
+  printf("while ( CONDITION ) CODE endwhile\n");
+}
 
 EXPRESSION: EXPRESSION op_sum TERM
 | EXPRESSION op_sub TERM

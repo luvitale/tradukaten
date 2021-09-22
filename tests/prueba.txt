@@ -9,3 +9,7 @@ if (acc = 1 && total = 0.0)
 
   result := "correct";
 endif
+
+while (acc <= 10)
+  acc := acc + 2;
+endwhile
