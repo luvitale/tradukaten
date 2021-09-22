@@ -38,19 +38,11 @@ jobs:
         id: get_version
         uses: battila7/get-version-action@v2
 
-      - name: Get Replaced Version
-        uses: mad9000/actions-find-and-replace-string@2
-        id: get_replaced_version
-        with:
-          source: ${{ steps.get_version.outputs.version-without-v }}
-          find: "."
-          replace: "_"
-
       - name: Set Environment with Version
         id: set_env_with_version
         env:
-          VERSION: ${{ steps.get_replaced_version.outputs.value }}
-        run: echo "VERSION_NAME=$(echo $VERSION)" >> $env:GITHUB_ENV
+          VERSION: ${{ steps.get_version.outputs.version-without-v }}
+        run: echo "VERSION_NAME=$(echo ${VERSION//./_})" >> $env:GITHUB_ENV
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
