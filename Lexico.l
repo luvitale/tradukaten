@@ -16,8 +16,8 @@
 
 natural_digit [1-9]
 digit (0|{natural_digit})
-uppercase_letter [A-Z]
-lowercase_letter [a-z]
+uppercase_letter [A-ZÁÉÍÓÚÑĈĜĤĴŜŬ]
+lowercase_letter [a-záéíóúñĉĝĥĵŝŭ]
 letter ({uppercase_letter}|{lowercase_letter})
 
 op_assign (":="|"<-")
