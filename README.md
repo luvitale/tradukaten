@@ -38,7 +38,7 @@ make
 ```
 flex -o lex.yy.c Lexico.l
 bison -dyv Sintactico.y
-gcc lex.yy.c y.tab.c -o tradukaten.exe -fcommon
+gcc lex.yy.c y.tab.c ts.c -o tradukaten.exe -fcommon
 ```
 
 Or
@@ -46,5 +46,5 @@ Or
 ```
 flex -o lex.yy.c Lexico.l
 bison -dyv Sintactico.y
-gcc lex.yy.c y.tab.c -o tradukaten.app -fcommon
+gcc lex.yy.c y.tab.c ts.c -o tradukaten.app -fcommon
 ```
