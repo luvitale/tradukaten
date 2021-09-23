@@ -1,5 +1,8 @@
+.vscode
+
 *.app
 *.exe
 *.tab.*
 *.yy.*
 *.output
+ts.txt

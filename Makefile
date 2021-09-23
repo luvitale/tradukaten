@@ -10,8 +10,8 @@ else
 	OBJECT_NAME=tradukaten.app
 endif
 
-tradukaten.app: lex.yy.c y.tab.c
-	$(CC) lex.yy.c y.tab.c -o $(OBJECT_NAME) -fcommon
+tradukaten.app: lex.yy.c y.tab.c ts.c
+	$(CC) lex.yy.c y.tab.c ts.c -o $(OBJECT_NAME) -fcommon
 
 lex.yy.c: Lexico.l
 	$(LEX) -o lex.yy.c Lexico.l

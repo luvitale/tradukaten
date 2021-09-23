@@ -2,6 +2,7 @@
   #include <stdio.h>
   #include <stdlib.h>
   #include "y.tab.h"
+  #include "ts.h"
 
   int lineno = 1;
 
@@ -60,7 +61,7 @@ id {letter}(_?({letter}|{digit}))*
 
 int_constant {op_sub}?{digit}+
 real_constant {op_sub}?({digit}*{dot}{digit}|{digit}+{dot}{digit}*)
-string_constant \".*?\"
+string_constant {open_string}({letter}|" "|[¿?¡!])*{close_string}
 
 /*
  * Reserved Words
@@ -101,6 +102,9 @@ string_type ("string"|"STRING"|"String"|"$\""|"₿\"")
 
 open_dec "["
 close_dec "]"
+
+open_string \"
+close_string \"
 
 open_parenthesis "("
 close_parenthesis ")"
@@ -255,6 +259,8 @@ comment "*/".*"/*"
     yylval.int_val = value;
   }
 
+  loadToTS(yytext, constant_int);
+
   return int_constant;
 }
 {real_constant} {
@@ -262,7 +268,7 @@ comment "*/".*"/*"
 
   char msg[MAX_STRING + strlen(yytext)];
 
-  if (value < MIN_REAL || value > MAX_REAL || strlen(yytext) > 32) {
+  if (value < MIN_REAL || value > MAX_REAL) {
     sprintf(
       msg,
       "real constant out of range: %s, min: %f, max: %f",
@@ -272,9 +278,9 @@ comment "*/".*"/*"
     yyerror(msg);
   }
 
-  printf("yytext: %f\n", value);
+  yylval.real_val = value;
 
-  yylval.float_val = value;
+  loadToTS(yytext, constant_real);
 
   return real_constant;
 }
@@ -295,6 +301,8 @@ comment "*/".*"/*"
   }
 
   yylval.str_val = yytext;
+  
+  loadToTS(yytext, constant_str);
 
   return string_constant;
 }
@@ -315,6 +323,8 @@ comment "*/".*"/*"
   }
 
   yylval.str_val = yytext;
+
+  loadToTS(yytext, identifier);
 
   return id;
 }

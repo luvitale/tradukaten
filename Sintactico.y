@@ -3,7 +3,7 @@
   #include <stdio.h>
   #include <stdlib.h>
   #include <string.h>
-  #include "y.tab.h"
+  #include "ts.h"
 
   #define COLOR_RED "\033[1;31m"
   #define COLOR_RESET "\033[0m"
@@ -25,7 +25,7 @@
 
 %union {
   int int_val;
-  double float_val;
+  double real_val;
   char *str_val;
 }
 
@@ -167,6 +167,8 @@ int main(int argc,char *argv[]) {
   }
 
   yyparse();
+  assignConstantValue();
+  saveFileTS();
 
   fclose(yyin);
 
@@ -174,7 +176,7 @@ int main(int argc,char *argv[]) {
 }
 
 void show_help(char* app_name) {
-  printf("%s [program_file]\n\n", app_name);
+  printf("%s [code_file]\n\n", app_name);
   printf("Example: %s %s\n\n", app_name, "./tests/prueba.txt");
 }
 
