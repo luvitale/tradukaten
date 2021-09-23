@@ -10,7 +10,7 @@
   int MAX_INT = 32767;
   double MIN_REAL = -2147483648.0;
   double MAX_REAL = 2147483647.0;
-  int MAX_STRING = 100;
+  int MAX_STRING = 30;
 
   int yyerror(char *);
 %}

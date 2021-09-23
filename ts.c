@@ -2,7 +2,7 @@
 
 int yyerror(char *);
 
-const int CANT_CHARS = 240;
+const int CANT_CHARS = 110;
 const int CANT_MAX_SYMBOLS = 500;
 
 const char *const type_str[] = {
@@ -28,7 +28,7 @@ void saveFileTS(void)
     exit(1);
   }
 
-  fprintf(symbol_table_file, "NOMBRE %93s | TIPODATO %11s | VALOR %94s | LONGITUD %2s\n", " ", " ", " ", " ");
+  fprintf(symbol_table_file, "NOMBRE %28s | TIPODATO %11s | VALOR %28s | LONGITUD %2s\n", " ", " ", " ", " ");
   for (character = 0; character < CANT_CHARS; character++)
     fprintf(symbol_table_file, "-");
   fprintf(symbol_table_file, "\n");
@@ -37,7 +37,7 @@ void saveFileTS(void)
   {
     if (symbol_table[symbol_num].datatype != not_type)
       fprintf(
-          symbol_table_file, "%-100s | %-20s | %-100s | %-11s\n",
+          symbol_table_file, "%-35s | %-20s | %-35s | %-11s\n",
           symbol_table[symbol_num].lexeme,
           type_str[symbol_table[symbol_num].datatype],
           symbol_table[symbol_num].value,
