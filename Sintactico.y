@@ -17,6 +17,64 @@
   char *yyltext;
   char *yytext;
 
+  char* rule[55] = {
+    "R0. PROGRAM -> CODE",
+    "R1. CODE -> CODE BLOCK",
+    "R2. CODE -> BLOCK",
+    "R3. BLOCK -> DECLARATION;",
+    "R4. BLOCK -> ASSIGNMENT;",
+    "R5. BLOCK -> INPUT;",
+    "R6. BLOCK -> OUTPUT;",
+    "R7. BLOCK -> LENGTH;",
+    "R8. BLOCK -> DECISION",
+    "R9. BLOCK -> ITERATION",
+    "R10. DECLARATION -> dim [VARIABLES] as [DATATYPES]",
+    "R11. VARIABLES -> VARIABLES, id",
+    "R12. VARIABLES -> id",
+    "R13. DATATYPES -> DATATYPES, DATATYPE",
+    "R14. DATATYPES -> DATATYPE",
+    "R15. DATATYPE -> int_type",
+    "R16. DATATYPE -> real_type",
+    "R17. DATATYPE -> string_type",
+    "R18. ASSIGNMENT -> id := ASSIGNMENT",
+    "R19. ASSIGNMENT -> id := EXPRESSION",
+    "R20. EXPRESSION -> EXPRESSION + TERM",
+    "R21. EXPRESSION -> EXPRESSION - TERM",
+    "R22. EXPRESSION -> TERM",
+    "R23. TERM -> TERM * FACTOR",
+    "R24. TERM -> TERM / FACTOR",
+    "R25. TERM -> FACTOR",
+    "R26. FACTOR -> ( EXPRESSION )",
+    "R27. FACTOR -> id",
+    "R28. FACTOR -> CONSTANT",
+    "R29. FACTOR -> LENGTH",
+    "R30. CONSTANT -> int_constant",
+    "R31. CONSTANT -> real_constant",
+    "R32. CONSTANT -> string_constant",
+    "R33. LENGTH -> long ( LIST )",
+    "R34. LIST -> [ ITEMS ]",
+    "R35. ITEMS -> ITEMS, ITEM",
+    "R36. ITEMS -> ITEM",
+    "R37. ITEM -> CONSTANT",
+    "R38. ITEM -> id",
+    "R39. INPUT -> get id",
+    "R40. OUTPUT -> display EXPRESSION",
+    "R41. DECISION -> if ( CONDITION ) CODE endif",
+    "R42. CONDITION -> CONDITION && COMPARATION",
+    "R43. CONDITION -> CONDITION || COMPARATION",
+    "R44. CONDITION -> COMPARATION",
+    "R45. COMPARATION -> EXPRESSION COMPARATOR EXPRESSION",
+    "R46. COMPARATION -> ( CONDITION )",
+    "R47. COMPARATOR -> ==",
+    "R48. COMPARATOR -> <",
+    "R49. COMPARATOR -> <=",
+    "R50. COMPARATOR -> >",
+    "R51. COMPARATOR -> >=",
+    "R52. COMPARATOR -> !=",
+    "R53. ITERATION -> while ( CONDITION ) CODE endwhile",
+    "R54. ITERATION -> while id in LIST do CODE endwhile"
+  };
+
   int yylex();
   int yyerror(char *);
 
@@ -45,8 +103,8 @@
 %token open_parenthesis close_parenthesis
 
 %token op_dim op_as
-%token open_dec close_dec
-%token dec_separator
+%token open_bracket close_bracket
+%token comma
 %token int_type real_type string_type
 
 %token op_display op_get
@@ -57,89 +115,163 @@
 %%
 PROGRAM: CODE;
 
-CODE: CODE BLOCK | BLOCK;
-
-BLOCK: DECLARATION separator
-| ASSIGNMENT separator
-| INPUT separator
-| OUTPUT separator
-| LENGTH separator
-| DECISION
-| ITERATION;
-
-LENGTH: fun_long open_parenthesis LIST close_parenthesis {
-  printf("long(LIST);\n");
+CODE: CODE BLOCK {
+  puts(rule[1]);
+} | BLOCK {
+  puts(rule[2]);
 };
 
-LIST: open_dec ITEMS close_dec;
+BLOCK: DECLARATION separator {
+  puts(rule[3]);
+} | ASSIGNMENT separator {
+  puts(rule[4]);
+} | LENGTH separator {
+  puts(rule[5]);
+} | INPUT separator {
+  puts(rule[6]);
+} | OUTPUT separator {
+  puts(rule[7]);
+} | DECISION {
+  puts(rule[8]);
+} | ITERATION {
+  puts(rule[9]);
+};
 
-ITEMS: ITEMS dec_separator ITEM | ITEM;
 
-ITEM: CONSTANT | id;
+DECLARATION: op_dim open_bracket VARIABLES close_bracket op_as open_bracket DATATYPES close_bracket {
+  puts(rule[10]);
+};
+
+VARIABLES: VARIABLES comma id {
+  puts(rule[11]);
+} | id {
+  puts(rule[12]);
+};
+
+DATATYPES: DATATYPES comma DATATYPE {
+  puts(rule[13]);
+} | DATATYPE {
+  puts(rule[14]);
+};
+
+DATATYPE: int_type {
+  puts(rule[15]);
+} | real_type {
+  puts(rule[16]);
+} | string_type {
+  puts(rule[17]);
+};
+
+
+ASSIGNMENT: id op_assign ASSIGNMENT {
+  puts(rule[18]);
+} | id op_assign EXPRESSION {
+  puts(rule[19]);
+};
+
+EXPRESSION: EXPRESSION op_sum TERM {
+  puts(rule[20]);
+} | EXPRESSION op_sub TERM {
+  puts(rule[21]);
+} | TERM {
+  puts(rule[22]);
+};
+
+TERM: TERM op_mult FACTOR {
+  puts(rule[23]);
+} | TERM op_div FACTOR {
+  puts(rule[24]);
+} | FACTOR {
+  puts(rule[25]);
+};
+
+FACTOR: open_parenthesis EXPRESSION close_parenthesis {
+  puts(rule[26]);
+} | id {
+  puts(rule[27]);
+} | CONSTANT {
+  puts(rule[28]);
+} | LENGTH {
+  puts(rule[29]);
+};
+
+CONSTANT: int_constant {
+  puts(rule[30]);
+} | real_constant {
+  puts(rule[31]);
+} | string_constant {
+  puts(rule[32]);
+};
+
+
+LENGTH: fun_long open_parenthesis LIST close_parenthesis {
+  puts(rule[33]);
+};
+
+LIST: open_bracket ITEMS close_bracket {
+  puts(rule[34]);
+};
+
+ITEMS: ITEMS comma ITEM {
+  puts(rule[35]);
+} | ITEM {
+  puts(rule[36]);
+};
+
+ITEM: CONSTANT {
+  puts(rule[37]);
+} | id {
+  puts(rule[38]);
+};
+
 
 INPUT: op_get id {
-  printf("get id;\n");
+  puts(rule[39]);
 };
 
 OUTPUT: op_display EXPRESSION {
-  printf("display EXPRESSION;\n");
+  puts(rule[40]);
 };
 
-ASSIGNMENT: id op_assign EXPRESSION {
-  printf("id <- EXPRESSION;\n");
-} | id op_assign ASSIGNMENT {
-  printf("id <- ASSIGNMENT;\n");
-};
 
 DECISION: op_if open_parenthesis CONDITION close_parenthesis CODE op_endif {
-  printf("if ( CONDITION ) CODE endif\n");
+  puts(rule[41]);
 };
 
 CONDITION: CONDITION op_and COMPARATION {
-  printf("CONDITION && COMPARATION\n");
+  puts(rule[42]);
 } | CONDITION op_or COMPARATION {
-  printf("CONDITION || COMPARATION\n");
-} | open_parenthesis CONDITION close_parenthesis {
-  printf("( CONDITION )\n");
-} | COMPARATION;
+  puts(rule[43]);
+} | COMPARATION {
+  puts(rule[44]);
+};
 
 COMPARATION: EXPRESSION COMPARATOR EXPRESSION {
-  printf("EXPRESSION COMPARATOR EXPRESSION\n");
+  puts(rule[45]);
+} | open_parenthesis CONDITION close_parenthesis {
+  puts(rule[46]);
 };
 
-COMPARATOR: op_eq | op_lt | op_le | op_gt | op_ge | op_ne;
+COMPARATOR: op_eq {
+  puts(rule[47]);
+} | op_lt {
+  puts(rule[48]);
+} | op_le {
+  puts(rule[49]);
+} | op_gt {
+  puts(rule[50]);
+} | op_ge {
+  puts(rule[51]);
+} | op_ne {
+  puts(rule[52]);
+};
+
 
 ITERATION: op_while open_parenthesis CONDITION close_parenthesis CODE op_endwhile {
-  printf("while ( CONDITION ) CODE endwhile\n");
+  puts(rule[53]);
 } | op_while id op_in LIST op_do CODE op_endwhile {
-  printf("while id in LIST do CODE endwhile\n");
+  puts(rule[54]);
 };
-
-DECLARATION: op_dim open_dec VARIABLES close_dec op_as open_dec DATATYPES close_dec {
-  printf("dim [VARIABLES] as [DATATYPES];\n");
-};
-
-EXPRESSION: EXPRESSION op_sum TERM
-| EXPRESSION op_sub TERM
-| TERM;
-
-TERM: TERM op_mult FACTOR
-| TERM op_div FACTOR
-| FACTOR;
-
-FACTOR: open_parenthesis EXPRESSION close_parenthesis
-| LENGTH
-| id
-| CONSTANT;
-
-VARIABLES: VARIABLES dec_separator id
-| id;
-DATATYPES: DATATYPES dec_separator DATATYPE
-| DATATYPE;
-
-DATATYPE: int_type | real_type | string_type;
-
-CONSTANT: int_constant | real_constant | string_constant;
 %%
 
 int main(int argc,char *argv[]) {

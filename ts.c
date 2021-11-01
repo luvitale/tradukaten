@@ -1,9 +1,15 @@
 #include "ts.h"
 
+int checkIfItIsDuplicated(char *lexeme);
+void loadConstantToSymbolTable(int symbol_num, char *lexeme, enum type symbol_type);
+void loadIdToSymbolTable(int symbol_num, char *lexeme);
+int loadToSymbolTable(char *lexeme, enum type symbol_type);
+
 int yyerror(char *);
 
-const int CANT_CHARS = 110;
-const int CANT_MAX_SYMBOLS = 500;
+const int CHARS_QUANTITY = 110;
+const int MAX_NUM_SYMBOLS = 500;
+const int NOT_DUPLICATED = -1;
 
 const char *const type_str[] = {
     [not_type] = "",
@@ -28,12 +34,18 @@ void saveFileTS(void)
     exit(1);
   }
 
-  fprintf(symbol_table_file, "NOMBRE %28s | TIPODATO %11s | VALOR %28s | LONGITUD %2s\n", " ", " ", " ", " ");
-  for (character = 0; character < CANT_CHARS; character++)
+  // Header
+  fprintf(symbol_table_file, "%-35s | %-20s | %-35s | %-11s\n",
+          "NOMBRE",
+          "TIPODATO",
+          "VALOR",
+          "LONGITUD");
+  for (character = 0; character < CHARS_QUANTITY; character++)
     fprintf(symbol_table_file, "-");
   fprintf(symbol_table_file, "\n");
 
-  for (symbol_num = 0; symbol_num < CANT_MAX_SYMBOLS; ++symbol_num)
+  // ID & Constants
+  for (symbol_num = 0; symbol_num < MAX_NUM_SYMBOLS; ++symbol_num)
   {
     if (symbol_table[symbol_num].datatype != not_type)
       fprintf(
@@ -50,63 +62,88 @@ void saveFileTS(void)
   printf("\nFile closed and symbol table saved without errors.\n");
 }
 
-int loadToTS(char *lexeme, enum type symbol_type)
+int checkIfItIsDuplicated(char *lexeme)
 {
   int symbol_num;
-  int isRepeated = 0;
   char lexeme_with_underscore[strlen(lexeme) + 1];
-
-  for (symbol_num = 0; symbol_num < CANT_MAX_SYMBOLS; ++symbol_num)
+  for (symbol_num = 0; symbol_num < MAX_NUM_SYMBOLS; ++symbol_num)
   {
-    if (symbol_table[symbol_num].isStored == 1)
-    {
-      if (strcmp(lexeme, symbol_table[symbol_num].lexeme) == 0)
-      {
-        if (symbol_table[symbol_num].value == 0)
-        {
-          yyerror("variable duplicated");
-        }
+    if (symbol_table[symbol_num].isStored == 0)
+      return NOT_DUPLICATED;
 
-        return symbol_num;
-      }
-      else
+    // If it is lexeme (ID)
+    if (strcmp(lexeme, symbol_table[symbol_num].lexeme) == 0)
+    {
+      if (symbol_table[symbol_num].value == 0)
       {
-        strcpy(lexeme_with_underscore, "_");
-        strcat(lexeme_with_underscore, lexeme);
-        if (strcmp(lexeme_with_underscore, symbol_table[symbol_num].lexeme) == 0)
-        {
-          return symbol_num;
-        }
+        yyerror("variable duplicated");
+      }
+
+      return symbol_num;
+    }
+
+    // Else
+    else
+    {
+      // Check Lexeme with underscore (Constant)
+      sprintf(lexeme_with_underscore, "_%s", lexeme);
+      if (strcmp(lexeme_with_underscore, symbol_table[symbol_num].lexeme) == 0)
+      {
+        return symbol_num;
       }
     }
   }
 
-  for (symbol_num = 0; symbol_num < CANT_MAX_SYMBOLS; ++symbol_num)
+  return symbol_num;
+}
+
+void loadConstantToSymbolTable(int symbol_num, char *lexeme, enum type symbol_type)
+{
+  char lexeme_with_underscore[strlen(lexeme) + 1];
+
+  sprintf(lexeme_with_underscore, "_%s", lexeme);
+
+  strcpy(symbol_table[symbol_num].lexeme, lexeme_with_underscore);
+  strcpy(symbol_table[symbol_num].value, lexeme);
+
+  // If it is String
+  if (symbol_type == constant_str)
+  {
+    // String Length = 0
+    if (strlen(lexeme) == 0)
+    {
+      strcpy(symbol_table[symbol_num].length, "-");
+    }
+    // String Length != 0
+    else
+    {
+      sprintf(symbol_table[symbol_num].length, "%ld", strlen(lexeme) - 2);
+    }
+  }
+}
+
+void loadIdToSymbolTable(int symbol_num, char *lexeme)
+{
+  strcpy(symbol_table[symbol_num].lexeme, lexeme);
+}
+
+int loadToSymbolTable(char *lexeme, enum type symbol_type)
+{
+  int symbol_num;
+  char lexeme_with_underscore[strlen(lexeme) + 1];
+
+  for (symbol_num = 0; symbol_num < MAX_NUM_SYMBOLS; ++symbol_num)
   {
     if (symbol_table[symbol_num].isStored == 0)
     {
 
       if (strstr(type_str[symbol_type], type_str[constant]))
       {
-        strcpy(lexeme_with_underscore, "_");
-        strcat(lexeme_with_underscore, lexeme);
-        strcpy(symbol_table[symbol_num].lexeme, lexeme_with_underscore);
-        strcpy(symbol_table[symbol_num].value, lexeme);
-        if (symbol_type == constant_str)
-        {
-          if (strlen(lexeme) == 0)
-          {
-            strcpy(symbol_table[symbol_num].length, "-");
-          }
-          else
-          {
-            sprintf(symbol_table[symbol_num].length, "%ld", strlen(lexeme) - 2);
-          }
-        }
+        loadConstantToSymbolTable(symbol_num, lexeme, symbol_type);
       }
       else
       {
-        strcpy(symbol_table[symbol_num].lexeme, lexeme);
+        loadIdToSymbolTable(symbol_num, lexeme);
       }
 
       symbol_table[symbol_num].datatype = symbol_type;
@@ -119,10 +156,22 @@ int loadToTS(char *lexeme, enum type symbol_type)
   return symbol_num;
 }
 
+int loadToTS(char *lexeme, enum type symbol_type)
+{
+  int symbol_num;
+
+  int duplicated_symbol_num = checkIfItIsDuplicated(lexeme);
+
+  if (duplicated_symbol_num != NOT_DUPLICATED)
+    return duplicated_symbol_num;
+
+  return loadToSymbolTable(lexeme, symbol_type);
+}
+
 void assignConstantValue()
 {
   int symbol_num;
-  for (symbol_num = 0; symbol_num < CANT_MAX_SYMBOLS - 1; ++symbol_num)
+  for (symbol_num = 0; symbol_num < MAX_NUM_SYMBOLS - 1; ++symbol_num)
   {
     if (symbol_table[symbol_num].isStored == 1)
     {

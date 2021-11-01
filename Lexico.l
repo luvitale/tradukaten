@@ -100,8 +100,8 @@ string_type ("string"|"STRING"|"String"|"$\""|"₿\"")
  * Groupers
  */
 
-open_dec "["
-close_dec "]"
+open_bracket "["
+close_bracket "]"
 
 open_string \"
 close_string \"
@@ -115,7 +115,7 @@ close_parenthesis ")"
 
 separator ";"
 
-dec_separator ","
+comma ","
 
 /*
  * Comment
@@ -145,15 +145,15 @@ comment "*/".*"/*"
   return op_get;
 }
 
-{dec_separator} {
-  return dec_separator;
+{comma} {
+  return comma;
 }
 
-{open_dec} {
-  return open_dec;
+{open_bracket} {
+  return open_bracket;
 }
-{close_dec} {
-  return close_dec;
+{close_bracket} {
+  return close_bracket;
 }
 
 {fun_long} {
