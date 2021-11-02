@@ -17,7 +17,7 @@
   char *yyltext;
   char *yytext;
 
-  char* rule[55] = {
+  char* rule[56] = {
     "R0. PROGRAM -> CODE",
     "R1. CODE -> CODE BLOCK",
     "R2. CODE -> BLOCK",
@@ -60,6 +60,7 @@
     "R39. INPUT -> get id",
     "R40. OUTPUT -> display EXPRESSION",
     "R41. DECISION -> if ( CONDITION ) CODE endif",
+    "R41. DECISION -> if ( CONDITION ) CODE else CODE endif",
     "R42. CONDITION -> CONDITION && COMPARATION",
     "R43. CONDITION -> CONDITION || COMPARATION",
     "R44. CONDITION -> COMPARATION",
@@ -98,7 +99,7 @@
 %token op_eq op_lt op_le op_gt op_ge op_ne
 %token op_and op_or
 
-%token op_if op_endif
+%token op_if op_else op_endif
 %token op_while op_endwhile
 %token open_parenthesis close_parenthesis
 
@@ -236,41 +237,43 @@ OUTPUT: op_display EXPRESSION {
 
 DECISION: op_if open_parenthesis CONDITION close_parenthesis CODE op_endif {
   puts(rule[41]);
+} | op_if open_parenthesis CONDITION close_parenthesis CODE op_else CODE op_endif {
+  puts(rule[42]);
 };
 
 CONDITION: CONDITION op_and COMPARATION {
-  puts(rule[42]);
-} | CONDITION op_or COMPARATION {
   puts(rule[43]);
-} | COMPARATION {
+} | CONDITION op_or COMPARATION {
   puts(rule[44]);
+} | COMPARATION {
+  puts(rule[45]);
 };
 
 COMPARATION: EXPRESSION COMPARATOR EXPRESSION {
-  puts(rule[45]);
-} | open_parenthesis CONDITION close_parenthesis {
   puts(rule[46]);
+} | open_parenthesis CONDITION close_parenthesis {
+  puts(rule[47]);
 };
 
 COMPARATOR: op_eq {
-  puts(rule[47]);
-} | op_lt {
   puts(rule[48]);
-} | op_le {
+} | op_lt {
   puts(rule[49]);
-} | op_gt {
+} | op_le {
   puts(rule[50]);
-} | op_ge {
+} | op_gt {
   puts(rule[51]);
-} | op_ne {
+} | op_ge {
   puts(rule[52]);
+} | op_ne {
+  puts(rule[53]);
 };
 
 
 ITERATION: op_while open_parenthesis CONDITION close_parenthesis CODE op_endwhile {
-  puts(rule[53]);
-} | op_while id op_in LIST op_do CODE op_endwhile {
   puts(rule[54]);
+} | op_while id op_in LIST op_do CODE op_endwhile {
+  puts(rule[55]);
 };
 %%
 

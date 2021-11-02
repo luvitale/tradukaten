@@ -70,6 +70,7 @@ string_constant {open_string}{valid_character}*{close_string}
  */
 
 op_if ("if"|"IF"|"If"|"?<")
+op_else ("else"|"ELSE"|"Else"|"<:>")
 op_endif ("endif"|"ENDIF"|"Endif"|"EndIf"|">?")
 
 op_while ("while"|"WHILE"|"While"|"@<")
@@ -195,6 +196,9 @@ comment "*/"{valid_character}*"/*"
 
 {op_if} {
   return op_if;
+}
+{op_else} {
+  return op_else;
 }
 {op_endif} {
   return op_endif;

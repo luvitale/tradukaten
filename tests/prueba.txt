@@ -27,6 +27,18 @@ if (akum = 1 && total = 0.0)
   */ rezult := "korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte"; /*
 endif
 
+if (akum == 10)
+  if (total == 10.0)
+    rezult := "total and akum equal 10";
+  else
+    if (total == 30.0)
+      rezult := "akum 10 but total 30";
+    else
+      rezult := "akum 10 but total not";
+    endif
+  endif
+endif
+
 while (akum <= 10)
   akum := akum + long([akum, total]);
 endwhile
