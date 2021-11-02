@@ -9,6 +9,25 @@ const char *const type_str[] = {
     [str] = "ID String",
 };
 
+// get type size of the enum type
+const int type_size = sizeof(type_str) / sizeof(type_str[0]);
+
+// get string from enum type
+char *getStringType(enum type t)
+{
+  return (char *)type_str[t];
+}
+
+// get enum type from string
+enum type getEnumType(const char *str)
+{
+  int i;
+  for (i = 0; i < type_size; i++)
+    if (strcmp(str, type_str[i]) == 0)
+      return i;
+  return -1;
+}
+
 const char *symbol_table_filename = "ts.txt";
 
 void createList(t_list *p)

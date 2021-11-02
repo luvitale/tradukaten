@@ -29,6 +29,12 @@ typedef struct s_node
   struct s_node *next;
 } t_node;
 
+// get string from enum type
+char *getStringType(enum type type);
+
+// get enum type from string
+enum type getEnumType(const char *type_str);
+
 typedef t_node *t_list;
 
 void createList(t_list *p);

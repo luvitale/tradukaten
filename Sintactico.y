@@ -4,6 +4,7 @@
   #include <stdlib.h>
   #include <string.h>
   #include "ts.h"
+  #include "queue.h"
 
   #define COLOR_RED "\033[1;31m"
   #define COLOR_RESET "\033[0m"
@@ -76,7 +77,12 @@
     "R54. ITERATION -> while id in LIST do CODE endwhile"
   };
 
+  char identifier[30];
+
   t_list symbol_table;
+
+  struct Queue* variable_queue;
+  struct Queue* datatype_queue;
 
   int yylex();
   int yyerror(char *);
@@ -143,17 +149,37 @@ BLOCK: DECLARATION separator {
 
 
 DECLARATION: op_dim open_bracket VARIABLES close_bracket op_as open_bracket DATATYPES close_bracket {
+  char* variable_elem, *str_datatype;
+  enum type datatype;
+
+  while(!isEmpty(variable_queue)) {
+    // dequeue variable
+    variable_elem = dequeue(variable_queue);
+    strcpy(identifier, variable_elem);
+
+    // dequeue datatype as enum type
+    str_datatype = dequeue(datatype_queue);
+    datatype = getEnumType(str_datatype);
+
+    // insert variable to symbol table
+    insertVariable(&symbol_table, identifier, datatype);
+  }
+  
   puts(rule[10]);
 };
 
 VARIABLES: VARIABLES comma id {
-  char* identifier = $3;
-  insertVariable(&symbol_table, identifier, str);
+  strcpy(identifier, strdup($3));
+
+  // enqueue identifier
+  enqueue(variable_queue, strdup(identifier));
 
   puts(rule[11]);
 } | id {
-  char* identifier = $1;
-  insertVariable(&symbol_table, identifier, str);
+  strcpy(identifier, strdup($1));
+
+  // enqueue identifier
+  enqueue(variable_queue, strdup(identifier));
 
   puts(rule[12]);
 };
@@ -165,10 +191,19 @@ DATATYPES: DATATYPES comma DATATYPE {
 };
 
 DATATYPE: int_type {
+  // enqueue integer type
+  enqueue(datatype_queue, getStringType(integer));
+
   puts(rule[15]);
 } | real_type {
+  // enqueue real type
+  enqueue(datatype_queue, getStringType(real));
+
   puts(rule[16]);
 } | string_type {
+  // enqueue string type
+  enqueue(datatype_queue, getStringType(str));
+
   puts(rule[17]);
 };
 
@@ -320,6 +355,8 @@ int main(int argc,char *argv[]) {
   }
 
   createList(&symbol_table);
+  variable_queue = createQueue(500);
+  datatype_queue = createQueue(500);
 
   yyparse();
 
