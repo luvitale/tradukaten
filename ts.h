@@ -8,30 +8,36 @@
 
 enum type
 {
-  not_type = 0,
-  integer,
-  constant_int,
-  real,
+  constant_int = 0,
   constant_real,
-  string,
   constant_str,
-  identifier,
-  constant,
+  integer,
+  real,
+  str,
 };
 
-typedef struct
+#define SUCCESS 1
+#define DUPLICATED 2
+#define NO_MEMORY 0
+
+typedef struct s_node
 {
-  char lexeme[100];
+  char name[50];
   enum type datatype;
-  char value[100];
-  char length[4];
-  int isStored;
-} t_symbol_row;
+  char value[50];
+  int length;
+  struct s_node *next;
+} t_node;
 
-t_symbol_row symbol_table[500];
+typedef t_node *t_list;
 
-void saveFileTS(void);
-int loadToTS(char *, enum type);
-void assignConstantValue(void);
+void createList(t_list *p);
+int insertOrder(t_list *p, char *name, enum type datatype, char *value, int length);
+int insertVariable(t_list *p, char *name, enum type datatype);
+int insertString(t_list *p, char *name);
+int insertInteger(t_list *p, int lex);
+int insertReal(t_list *p, double lex);
+char *deleteQuotes(char *lex);
+void saveTableInFile(t_list *p);
 
 #endif

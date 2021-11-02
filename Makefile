@@ -12,7 +12,7 @@ endif
 
 all: clean tradukaten.app
 
-%.app: lex.yy.c y.tab.c ts.c
+%.app: lex.yy.c y.tab.c ts.c stack.c
 	$(CC) -o $*.$(EXT) $? -fcommon
 
 lex.yy.c: Lexico.l

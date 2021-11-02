@@ -76,6 +76,8 @@
     "R54. ITERATION -> while id in LIST do CODE endwhile"
   };
 
+  t_list symbol_table;
+
   int yylex();
   int yyerror(char *);
 
@@ -88,9 +90,10 @@
   char *str_val;
 }
 
-%token id
-%token int_constant real_constant
-%token string_constant
+%token <str_val> id
+%token <int_val> int_constant
+%token <real_val> real_constant
+%token <str_val> string_constant
 
 %token op_assign
 %token op_sum op_sub op_mult op_div
@@ -144,8 +147,14 @@ DECLARATION: op_dim open_bracket VARIABLES close_bracket op_as open_bracket DATA
 };
 
 VARIABLES: VARIABLES comma id {
+  char* identifier = $3;
+  insertVariable(&symbol_table, identifier, str);
+
   puts(rule[11]);
 } | id {
+  char* identifier = $1;
+  insertVariable(&symbol_table, identifier, str);
+
   puts(rule[12]);
 };
 
@@ -197,10 +206,19 @@ FACTOR: open_parenthesis EXPRESSION close_parenthesis {
 };
 
 CONSTANT: int_constant {
+  int integer = $1;
+  insertInteger(&symbol_table, integer);
+
   puts(rule[30]);
 } | real_constant {
+  double real = $1;
+  insertReal(&symbol_table, real);
+
   puts(rule[31]);
 } | string_constant {
+  char* string = $1;
+  insertString(&symbol_table, string);
+
   puts(rule[32]);
 };
 
@@ -301,9 +319,11 @@ int main(int argc,char *argv[]) {
     yyin = arg_file;
   }
 
+  createList(&symbol_table);
+
   yyparse();
-  assignConstantValue();
-  saveFileTS();
+
+  saveTableInFile(&symbol_table);
 
   fclose(yyin);
 

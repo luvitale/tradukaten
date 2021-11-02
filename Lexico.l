@@ -265,8 +265,6 @@ comment "*/"{valid_character}*"/*"
     yylval.int_val = value;
   }
 
-  loadToTS(yytext, constant_int);
-
   return int_constant;
 }
 {real_constant} {
@@ -285,8 +283,6 @@ comment "*/"{valid_character}*"/*"
   }
 
   yylval.real_val = value;
-
-  loadToTS(yytext, constant_real);
 
   return real_constant;
 }
@@ -307,8 +303,6 @@ comment "*/"{valid_character}*"/*"
   }
 
   yylval.str_val = yytext;
-  
-  loadToTS(yytext, constant_str);
 
   return string_constant;
 }
@@ -329,8 +323,6 @@ comment "*/"{valid_character}*"/*"
   }
 
   yylval.str_val = yytext;
-
-  loadToTS(yytext, identifier);
 
   return id;
 }
