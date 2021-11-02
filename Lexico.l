@@ -25,6 +25,8 @@ lowercase_letter [a-záéíóúñĉĝĥĵŝŭ]
 letter ({uppercase_letter}|{lowercase_letter})
 dot "."
 
+valid_character ({letter}|{digit}|{op_sum}|{op_sub}|{op_mult}|{op_div}|" "|[¿?¡!():=&|;."])
+
 /*
  * Operators
  */
@@ -61,7 +63,7 @@ id {letter}(_?({letter}|{digit}))*
 
 int_constant {op_sub}?{digit}+
 real_constant {op_sub}?({digit}*{dot}{digit}|{digit}+{dot}{digit}*)
-string_constant {open_string}({letter}|" "|[¿?¡!])*{close_string}
+string_constant {open_string}{valid_character}*{close_string}
 
 /*
  * Reserved Words
@@ -121,7 +123,7 @@ comma ","
  * Comment
  */
 
-comment "*/".*"/*"
+comment "*/"{valid_character}*"/*"
 
 %%
 {op_dim} {

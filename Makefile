@@ -10,7 +10,7 @@ else
 	EXT=app
 endif
 
-all: tradukaten.app
+all: clean tradukaten.app
 
 %.app: lex.yy.c y.tab.c ts.c
 	$(CC) -o $*.$(EXT) $? -fcommon
@@ -21,7 +21,7 @@ lex.yy.c: Lexico.l
 y.tab.c: Sintactico.y
 	$(BISON) -o $@ -dyv $<
 
-test: tradukaten.app
+test: all
 	./tradukaten.$(EXT) ./tests/prueba.txt
 
 clean:
