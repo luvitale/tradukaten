@@ -9,12 +9,12 @@ struct Queue
   char **array;
 };
 
-struct Queue *createQueue();
-int isEmpty(struct Queue *q);
-int isFull(struct Queue *q);
+struct Queue *create_queue();
+int is_empty(struct Queue *q);
+int is_full(struct Queue *q);
 void enqueue(struct Queue *q, char *item);
 char *dequeue(struct Queue *q);
-void freeQueue(struct Queue *q);
-void showQueue(struct Queue *q);
+void free_queue(struct Queue *q);
+void show_queue(struct Queue *q);
 
 #endif

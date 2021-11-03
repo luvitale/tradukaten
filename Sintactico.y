@@ -5,6 +5,7 @@
   #include <string.h>
   #include "ts.h"
   #include "queue.h"
+  #include "rpn.h"
 
   #define COLOR_RED "\033[1;31m"
   #define COLOR_RESET "\033[0m"
@@ -18,6 +19,7 @@
   char *yyltext;
   char *yytext;
 
+  // Rules
   char* rule[56] = {
     "R0. PROGRAM -> CODE",
     "R1. CODE -> CODE BLOCK",
@@ -77,17 +79,26 @@
     "R54. ITERATION -> while id in LIST do CODE endwhile"
   };
 
-  char identifier[30];
-
+  // Symbol Table
   t_list symbol_table;
 
+  // Identifier
+  char identifier[30];
+
+  // Reverse Polish Notation
+  t_rpn *rpn;
+
+  // Queues
   struct Queue* variable_queue;
   struct Queue* datatype_queue;
+
 
   int yylex();
   int yyerror(char *);
 
   void show_help(char *);
+
+  char* delete_quotes(char *);
 %}
 
 %union {
@@ -96,6 +107,7 @@
   char *str_val;
 }
 
+// Tokens
 %token <str_val> id
 %token <int_val> int_constant
 %token <real_val> real_constant
@@ -122,6 +134,7 @@
 %token fun_long
 %token op_in op_do
 
+// Syntax & Grammar
 %%
 PROGRAM: CODE;
 
@@ -152,17 +165,17 @@ DECLARATION: op_dim open_bracket VARIABLES close_bracket op_as open_bracket DATA
   char* variable_elem, *str_datatype;
   enum type datatype;
 
-  while(!isEmpty(variable_queue)) {
+  while(!is_empty(variable_queue)) {
     // dequeue variable
     variable_elem = dequeue(variable_queue);
     strcpy(identifier, variable_elem);
 
     // dequeue datatype as enum type
     str_datatype = dequeue(datatype_queue);
-    datatype = getEnumType(str_datatype);
+    datatype = get_enum_type(str_datatype);
 
     // insert variable to symbol table
-    insertVariable(&symbol_table, identifier, datatype);
+    insert_variable(&symbol_table, identifier, datatype);
   }
   
   puts(rule[10]);
@@ -192,39 +205,57 @@ DATATYPES: DATATYPES comma DATATYPE {
 
 DATATYPE: int_type {
   // enqueue integer type
-  enqueue(datatype_queue, getStringType(integer));
+  enqueue(datatype_queue, get_string_type(integer));
 
   puts(rule[15]);
 } | real_type {
   // enqueue real type
-  enqueue(datatype_queue, getStringType(real));
+  enqueue(datatype_queue, get_string_type(real));
 
   puts(rule[16]);
 } | string_type {
   // enqueue string type
-  enqueue(datatype_queue, getStringType(str));
+  enqueue(datatype_queue, get_string_type(str));
 
   puts(rule[17]);
 };
 
 
 ASSIGNMENT: id op_assign ASSIGNMENT {
+  strcpy(identifier, strdup($1));
+
+  add_lexeme_to_rpn(rpn, (lexeme*)strdup(identifier));
+  add_lexeme_to_rpn(rpn, (lexeme*)":=");
+
   puts(rule[18]);
 } | id op_assign EXPRESSION {
+  strcpy(identifier, strdup($1));
+
+  add_lexeme_to_rpn(rpn, (lexeme*)strdup(identifier));
+  add_lexeme_to_rpn(rpn, (lexeme*)":=");
+
   puts(rule[19]);
 };
 
 EXPRESSION: EXPRESSION op_sum TERM {
+  add_lexeme_to_rpn(rpn, (lexeme*)"+");
+
   puts(rule[20]);
 } | EXPRESSION op_sub TERM {
+  add_lexeme_to_rpn(rpn, (lexeme*)"-");
+
   puts(rule[21]);
 } | TERM {
   puts(rule[22]);
 };
 
 TERM: TERM op_mult FACTOR {
+  add_lexeme_to_rpn(rpn, (lexeme*)"*");
+
   puts(rule[23]);
 } | TERM op_div FACTOR {
+  add_lexeme_to_rpn(rpn, (lexeme*)"/");
+
   puts(rule[24]);
 } | FACTOR {
   puts(rule[25]);
@@ -233,6 +264,9 @@ TERM: TERM op_mult FACTOR {
 FACTOR: open_parenthesis EXPRESSION close_parenthesis {
   puts(rule[26]);
 } | id {
+  strcpy(identifier, strdup($1));
+  add_lexeme_to_rpn(rpn, (lexeme*)strdup(identifier));
+
   puts(rule[27]);
 } | CONSTANT {
   puts(rule[28]);
@@ -242,17 +276,29 @@ FACTOR: open_parenthesis EXPRESSION close_parenthesis {
 
 CONSTANT: int_constant {
   int integer = $1;
-  insertInteger(&symbol_table, integer);
+  insert_integer(&symbol_table, integer);
+
+  char integer_lexeme[100];
+
+  sprintf(integer_lexeme, "%d", integer);
+
+  add_lexeme_to_rpn(rpn, (lexeme*)strdup(integer_lexeme));
 
   puts(rule[30]);
 } | real_constant {
   double real = $1;
-  insertReal(&symbol_table, real);
+  insert_real(&symbol_table, real);
+
+  char real_lexeme[100];
+  sprintf(real_lexeme, "%f", real);
+
+  add_lexeme_to_rpn(rpn, (lexeme*)strdup(real_lexeme));
 
   puts(rule[31]);
 } | string_constant {
-  char* string = $1;
-  insertString(&symbol_table, string);
+  char* string = delete_quotes($1);
+  insert_string(&symbol_table, strdup(string));
+  add_lexeme_to_rpn(rpn, (lexeme*)strdup(string));
 
   puts(rule[32]);
 };
@@ -354,26 +400,51 @@ int main(int argc,char *argv[]) {
     yyin = arg_file;
   }
 
-  createList(&symbol_table);
-  variable_queue = createQueue(500);
-  datatype_queue = createQueue(500);
+  create_list(&symbol_table);
+  variable_queue = create_queue(500);
+  datatype_queue = create_queue(500);
+
+  rpn = create_rpn(10);
 
   yyparse();
 
-  saveTableInFile(&symbol_table);
+  save_table_in_file(&symbol_table);
+
+  save_lexemes_in_file(rpn);
+
+  free_rpn(rpn);
 
   fclose(yyin);
 
   return EXIT_SUCCESS;
 }
 
+// Help
 void show_help(char* app_name) {
   printf("%s [code_file]\n\n", app_name);
   printf("Example: %s %s\n\n", app_name, "./tests/prueba.txt");
 }
 
+// Error
 int yyerror(char *error) {
   fprintf(stderr, COLOR_RED "\nline %d: %s\n" COLOR_RESET, lineno, error);
   fclose(yyin);
   exit(1);
+}
+
+char *delete_quotes(char *lex)
+{
+  char *str = lex;
+  char *start_str = str;
+  while (*lex)
+  {
+    if (*lex != '"')
+    {
+      (*str) = (*lex);
+      str++;
+    }
+    lex++;
+  }
+  *str = '\0';
+  return start_str;
 }

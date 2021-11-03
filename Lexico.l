@@ -322,7 +322,7 @@ comment "*/"{valid_character}*"/*"
     yyerror(msg);
   }
 
-  yylval.str_val = yytext;
+  yylval.str_val = strdup(yytext);
 
   return id;
 }

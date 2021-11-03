@@ -13,13 +13,13 @@ const char *const type_str[] = {
 const int type_size = sizeof(type_str) / sizeof(type_str[0]);
 
 // get string from enum type
-char *getStringType(enum type t)
+char *get_string_type(t_type t)
 {
   return (char *)type_str[t];
 }
 
 // get enum type from string
-enum type getEnumType(const char *str)
+t_type get_enum_type(const char *str)
 {
   int i;
   for (i = 0; i < type_size; i++)
@@ -30,12 +30,12 @@ enum type getEnumType(const char *str)
 
 const char *symbol_table_filename = "ts.txt";
 
-void createList(t_list *p)
+void create_list(t_list *p)
 {
   *p = NULL;
 }
 
-int insertOrder(t_list *p, char *name, enum type datatype, char *value, int length)
+int insert_order(t_list *p, char *name, t_type datatype, char *value, int length)
 {
   int result = -1;
   t_node *new = (t_node *)malloc(sizeof(t_node));
@@ -61,7 +61,7 @@ int insertOrder(t_list *p, char *name, enum type datatype, char *value, int leng
   return SUCCESS;
 }
 
-int insertInteger(t_list *p, int lex)
+int insert_integer(t_list *p, int lex)
 {
   int result = -1;
   char name[100];
@@ -70,7 +70,7 @@ int insertInteger(t_list *p, int lex)
   sprintf(lexeme, "%d", lex);
   sprintf(name, "_%d", lex);
 
-  result = insertOrder(p, name, constant_int, lexeme, 0);
+  result = insert_order(p, name, constant_int, lexeme, 0);
 
   if (result == DUPLICATED)
   {
@@ -80,7 +80,7 @@ int insertInteger(t_list *p, int lex)
   return SUCCESS;
 }
 
-int insertReal(t_list *p, double lex)
+int insert_real(t_list *p, double lex)
 {
   int result = -1;
   char name[100];
@@ -89,7 +89,7 @@ int insertReal(t_list *p, double lex)
   sprintf(name, "_%lf", lex);
   sprintf(lexeme, "%lf", lex);
 
-  result = insertOrder(p, name, constant_real, lexeme, 0);
+  result = insert_order(p, name, constant_real, lexeme, 0);
 
   if (result == DUPLICATED)
   {
@@ -99,16 +99,14 @@ int insertReal(t_list *p, double lex)
   return SUCCESS;
 }
 
-int insertString(t_list *p, char *lex)
+int insert_string(t_list *p, char *lex)
 {
   int result = -1;
   char name[100];
 
-  char *newName = deleteQuotes(lex);
+  sprintf(name, "_%s", lex);
 
-  sprintf(name, "_%s", newName);
-
-  result = insertOrder(p, name, constant_str, newName, strlen(newName));
+  result = insert_order(p, lex, constant_str, name, strlen(lex));
 
   if (result == DUPLICATED)
   {
@@ -118,28 +116,11 @@ int insertString(t_list *p, char *lex)
   return SUCCESS;
 }
 
-char *deleteQuotes(char *lex)
-{
-  char *str = lex;
-  char *startStr = str;
-  while (*lex)
-  {
-    if (*lex != '"')
-    {
-      (*str) = (*lex);
-      str++;
-    }
-    lex++;
-  }
-  *str = '\0';
-  return startStr;
-}
-
-int insertVariable(t_list *p, char *lex, enum type datatype)
+int insert_variable(t_list *p, char *lex, t_type datatype)
 {
   int result = -1;
 
-  result = insertOrder(p, lex, datatype, " ", 0);
+  result = insert_order(p, lex, datatype, " ", 0);
   if (result == DUPLICATED)
   {
     return DUPLICATED;
@@ -148,7 +129,7 @@ int insertVariable(t_list *p, char *lex, enum type datatype)
   return SUCCESS;
 }
 
-void saveTableInFile(t_list *p)
+void save_table_in_file(t_list *p)
 {
   FILE *symbol_table_file = fopen(symbol_table_filename, "w+");
   if (symbol_table_file == NULL)
