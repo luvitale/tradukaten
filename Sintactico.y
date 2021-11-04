@@ -365,22 +365,44 @@ DECISION: op_if open_parenthesis CONDITION close_parenthesis CODE op_endif {
   set_lexeme_from_rpn(rpn, start_cell, (lexeme_t*)strdup(target_cell));
 
   puts(rule[41]);
-} | op_if open_parenthesis CONDITION close_parenthesis CODE op_else CODE op_endif {
-  yyerror("else statement not supported");
-  
+} | op_if open_parenthesis CONDITION close_parenthesis CODE op_else {
+  // define jump to else statement
+  int start_cell = pop_from_stack(cell_stack);
+  int actual_cell = get_actual_cell_from_rpn(rpn);
+
+  char target_cell[100];
+
+  sprintf(target_cell, "#%d", actual_cell + 1);
+
+  set_lexeme_from_rpn(rpn, start_cell, (lexeme_t*)strdup(target_cell));
+
+  // add jump to end of if statement
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("BI"));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
+
+  push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
+} CODE op_endif {
+  // define jump to end of if statement
+  int start_cell = pop_from_stack(cell_stack);
+  int actual_cell = get_actual_cell_from_rpn(rpn);
+
+  char target_cell[100];
+
+  sprintf(target_cell, "#%d", actual_cell + 1);
+
+  set_lexeme_from_rpn(rpn, start_cell, (lexeme_t*)strdup(target_cell));
+
   puts(rule[42]);
 };
 
 CONDITION: COMPARATION op_and COMPARATION {
   yyerror("Error: 'and' operator is not supported");
-  /*
+
   puts(rule[43]);
-  */
 } | COMPARATION op_or COMPARATION {
   yyerror("Error: 'or' operator is not supported");
-  /*
+
   puts(rule[44]);
-  */
 } | COMPARATION {
   // add jump to end of if statement or else
   add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
