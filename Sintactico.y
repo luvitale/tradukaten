@@ -82,7 +82,8 @@
   // Symbol Table
   list_t symbol_table;
 
-  // Identifier
+  // Actual Item
+  char actual_item[30];
   char identifier[30];
 
   // Reverse Polish Notation
@@ -90,10 +91,13 @@
 
   unsigned int item_quantity;
 
+  int is_while_loop;
+
   // Queues
   queue_t* variable_queue;
   queue_t* datatype_queue;
   queue_t* branch_queue;
+  queue_t* while_queue;
 
   // Stack
   stack_t* cell_stack;
@@ -284,27 +288,25 @@ CONSTANT: int_constant {
   int integer = $1;
   insert_integer(&symbol_table, integer);
 
-  char integer_lexeme[100];
+  sprintf(actual_item, "%d", integer);
 
-  sprintf(integer_lexeme, "%d", integer);
-
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(integer_lexeme));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(actual_item));
 
   puts(rule[30]);
 } | real_constant {
   double real = $1;
   insert_real(&symbol_table, real);
 
-  char real_lexeme[100];
-  sprintf(real_lexeme, "%f", real);
+  sprintf(actual_item, "%f", real);
 
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(real_lexeme));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(actual_item));
 
   puts(rule[31]);
 } | string_constant {
-  char* string = delete_quotes($1);
-  insert_string(&symbol_table, strdup(string));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(string));
+  char *identifier = delete_quotes($1);
+  strcpy(actual_item, strdup(identifier));
+  insert_string(&symbol_table, strdup(identifier));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(identifier));
 
   puts(rule[32]);
 };
@@ -326,9 +328,18 @@ LIST: open_bracket ITEMS close_bracket {
 ITEMS: ITEMS comma ITEM {
   ++item_quantity;
 
+  if (is_while_loop) {
+    printf("%d -> %s\n", item_quantity, actual_item);
+    enqueue(while_queue, strdup(actual_item));
+  }
+
   puts(rule[35]);
 } | ITEM {
   item_quantity = 1;
+
+  if (is_while_loop) {
+    enqueue(while_queue, strdup(actual_item));
+  }
 
   puts(rule[36]);
 };
@@ -336,7 +347,7 @@ ITEMS: ITEMS comma ITEM {
 ITEM: CONSTANT {
   puts(rule[37]);
 } | id {
-  strcpy(identifier, strdup($1));
+  strcpy(actual_item, strdup($1));
 
   add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(identifier));
 
@@ -477,10 +488,78 @@ ITERATION: op_while {
   set_lexeme_from_rpn(rpn, start_cell, (lexeme_t*)strdup(target_cell));
 
   puts(rule[54]);
-} | op_while id op_in LIST op_do CODE op_endwhile {
-  yyerror("Error: 'while' operator is not supported");
+} | op_while id op_in {
+  is_while_loop = 1;
+} LIST op_do {
+  is_while_loop = 0;
 
-  puts(rule[54]);
+  int actual_item_num = 1;
+  char actual_item_num_str[100];
+  char* identifier = strdup($2);
+
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("1"));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("@act"));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(":="));
+
+  push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
+
+  while (!queue_is_empty(while_queue)) {
+    char item[30];
+    strcpy(item, strdup(dequeue(while_queue)));
+    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(item));
+    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(identifier));
+    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(":="));
+
+    if (actual_item_num < item_quantity) {
+      sprintf(actual_item_num_str, "%d", actual_item_num);
+      add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(actual_item_num_str));
+      add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("@act"));
+
+      add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("CMP"));
+      add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("BEQ"));
+      add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
+
+      push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
+    }
+    
+    actual_item_num++;
+  }
+
+  push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
+} CODE op_endwhile {
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("@act"));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("1"));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("+"));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("@act"));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(":="));
+
+  char item_quantity_str[100];
+
+  sprintf(item_quantity_str, "%d", item_quantity);
+
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("@act"));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(item_quantity_str));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("CMP"));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("BLE"));
+
+  int code_cell = pop_from_stack(cell_stack);
+
+  char target_cell[100];
+
+  while(!stack_is_empty(cell_stack)) {
+    int cell = pop_from_stack(cell_stack);
+
+    if (stack_is_empty(cell_stack)) {
+      sprintf(target_cell, "#%d", cell + 1);
+      add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(target_cell));
+    }
+    else {
+      sprintf(target_cell, "#%d", code_cell + 1);
+      set_lexeme_from_rpn(rpn, cell, (lexeme_t*)strdup(target_cell));
+    }
+  }
+
+  puts(rule[55]);
 };
 %%
 
@@ -512,6 +591,7 @@ int main(int argc,char *argv[]) {
   variable_queue = create_queue();
   datatype_queue = create_queue();
   branch_queue = create_queue();
+  while_queue = create_queue();
   cell_stack = create_stack();
 
   rpn = create_rpn();
