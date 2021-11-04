@@ -366,6 +366,10 @@ DECISION: op_if open_parenthesis CONDITION close_parenthesis CODE op_endif {
 
   puts(rule[41]);
 } | op_if open_parenthesis CONDITION close_parenthesis CODE op_else {
+  // add jump to end of if statement
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("BI"));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
+
   // define jump to else statement
   int start_cell = pop_from_stack(cell_stack);
   int actual_cell = get_actual_cell_from_rpn(rpn);
@@ -375,10 +379,6 @@ DECISION: op_if open_parenthesis CONDITION close_parenthesis CODE op_endif {
   sprintf(target_cell, "#%d", actual_cell + 1);
 
   set_lexeme_from_rpn(rpn, start_cell, (lexeme_t*)strdup(target_cell));
-
-  // add jump to end of if statement
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("BI"));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
 
   push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
 } CODE op_endif {
@@ -448,10 +448,35 @@ COMPARATOR: op_eq {
 };
 
 
-ITERATION: op_while open_parenthesis CONDITION close_parenthesis CODE op_endwhile {
-  yyerror("Error: 'while' operator is not supported");
+ITERATION: op_while {
+  // add start etiquete
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("ET"));
+  int actual_cell = get_actual_cell_from_rpn(rpn);
+  push_to_stack(cell_stack, actual_cell);
+} open_parenthesis CONDITION close_parenthesis {
+  // add jump to end of while statement
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
+  int actual_cell = get_actual_cell_from_rpn(rpn);
+  push_to_stack(cell_stack, actual_cell);
 
   puts(rule[53]);
+} CODE op_endwhile {
+  // define jump to start of while statement
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("BI"));
+
+  int start_cell = pop_from_stack(cell_stack);
+
+  char target_cell[100];
+
+  sprintf(target_cell, "#%d", start_cell);
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(target_cell));
+
+  int actual_cell = get_actual_cell_from_rpn(rpn);
+
+  sprintf(target_cell, "#%d", actual_cell + 1);
+  set_lexeme_from_rpn(rpn, start_cell, (lexeme_t*)strdup(target_cell));
+
+  puts(rule[54]);
 } | op_while id op_in LIST op_do CODE op_endwhile {
   yyerror("Error: 'while' operator is not supported");
 
