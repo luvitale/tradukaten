@@ -14,35 +14,35 @@ typedef enum type
   integer,
   real,
   str,
-} t_type;
+} type_t;
 
 #define SUCCESS 1
 #define DUPLICATED 2
 #define NO_MEMORY 0
 
-typedef struct s_node
+typedef struct Node
 {
   char name[50];
-  enum type datatype;
+  type_t datatype;
   char value[50];
   int length;
-  struct s_node *next;
-} t_node;
+  struct Node *next;
+} node_t;
 
 // get string from enum type
-char *get_string_type(t_type type);
+char *get_string_type(type_t type);
 
 // get enum type from string
-t_type get_enum_type(const char *type_str);
+type_t get_enum_type(const char *type_str);
 
-typedef t_node *t_list;
+typedef node_t *list_t;
 
-void create_list(t_list *p);
-int insert_order(t_list *p, char *name, t_type datatype, char *value, int length);
-int insert_variable(t_list *p, char *name, t_type datatype);
-int insert_string(t_list *p, char *name);
-int insert_integer(t_list *p, int lex);
-int insert_real(t_list *p, double lex);
-void save_table_in_file(t_list *p);
+void create_list(list_t *p);
+int insert_order(list_t *p, char *name, type_t datatype, char *value, int length);
+int insert_variable(list_t *p, char *name, type_t datatype);
+int insert_string(list_t *p, char *name);
+int insert_integer(list_t *p, int lex);
+int insert_real(list_t *p, double lex);
+void save_table_in_file(list_t *p);
 
 #endif

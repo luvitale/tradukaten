@@ -13,13 +13,13 @@ const char *const type_str[] = {
 const int type_size = sizeof(type_str) / sizeof(type_str[0]);
 
 // get string from enum type
-char *get_string_type(t_type t)
+char *get_string_type(type_t t)
 {
   return (char *)type_str[t];
 }
 
 // get enum type from string
-t_type get_enum_type(const char *str)
+type_t get_enum_type(const char *str)
 {
   int i;
   for (i = 0; i < type_size; i++)
@@ -30,15 +30,15 @@ t_type get_enum_type(const char *str)
 
 const char *symbol_table_filename = "ts.txt";
 
-void create_list(t_list *p)
+void create_list(list_t *p)
 {
   *p = NULL;
 }
 
-int insert_order(t_list *p, char *name, t_type datatype, char *value, int length)
+int insert_order(list_t *p, char *name, type_t datatype, char *value, int length)
 {
   int result = -1;
-  t_node *new = (t_node *)malloc(sizeof(t_node));
+  node_t *new = (node_t *)malloc(sizeof(node_t));
 
   if (!new)
     return NO_MEMORY;
@@ -61,7 +61,7 @@ int insert_order(t_list *p, char *name, t_type datatype, char *value, int length
   return SUCCESS;
 }
 
-int insert_integer(t_list *p, int lex)
+int insert_integer(list_t *p, int lex)
 {
   int result = -1;
   char name[100];
@@ -80,7 +80,7 @@ int insert_integer(t_list *p, int lex)
   return SUCCESS;
 }
 
-int insert_real(t_list *p, double lex)
+int insert_real(list_t *p, double lex)
 {
   int result = -1;
   char name[100];
@@ -99,7 +99,7 @@ int insert_real(t_list *p, double lex)
   return SUCCESS;
 }
 
-int insert_string(t_list *p, char *lex)
+int insert_string(list_t *p, char *lex)
 {
   int result = -1;
   char name[100];
@@ -116,7 +116,7 @@ int insert_string(t_list *p, char *lex)
   return SUCCESS;
 }
 
-int insert_variable(t_list *p, char *lex, t_type datatype)
+int insert_variable(list_t *p, char *lex, type_t datatype)
 {
   int result = -1;
 
@@ -129,7 +129,7 @@ int insert_variable(t_list *p, char *lex, t_type datatype)
   return SUCCESS;
 }
 
-void save_table_in_file(t_list *p)
+void save_table_in_file(list_t *p)
 {
   FILE *symbol_table_file = fopen(symbol_table_filename, "w+");
   if (symbol_table_file == NULL)

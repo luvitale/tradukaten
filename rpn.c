@@ -1,55 +1,63 @@
 #include "rpn.h"
 #include <stdio.h>
 #include <stdlib.h>
+#define INITIAL_CAPACITY 10
+#define FILENAME "intermedia.txt"
 
 // create reverse polish notacion
-t_rpn *create_rpn(int capacity)
+rpn_t *create_rpn()
 {
-  t_rpn *array = malloc(sizeof(t_rpn));
-  array->size = 0;
-  array->capacity = capacity;
-  array->data = malloc(sizeof(lexeme) * capacity);
-  return array;
+  rpn_t *rpn = malloc(sizeof(rpn_t));
+  rpn->size = 0;
+  rpn->capacity = INITIAL_CAPACITY;
+  rpn->lex = malloc(sizeof(lexeme_t) * rpn->capacity);
+  return rpn;
 }
 
-// get element from rpn in position num
-lexeme *get_lexeme_from_rpn(t_rpn *arr, int num)
+// get element from rpn in cell
+lexeme_t *get_lexeme_from_rpn(rpn_t *rpn, int cell)
 {
-  return *(arr->data + num);
+  return *(rpn->lex + cell);
 }
 
-// set element from rpn in position num
-void set_lexeme_from_rpn(t_rpn *arr, int num, lexeme *lex)
+// set element from rpn in cell
+void set_lexeme_from_rpn(rpn_t *rpn, int cell, lexeme_t *lex)
 {
-  arr->data[num] = lex;
+  rpn->lex[cell - 1] = lex;
 }
 
 // add element to rpn
-void add_lexeme_to_rpn(t_rpn *arr, lexeme *lex)
+void add_lexeme_to_rpn(rpn_t *rpn, lexeme_t *lex)
 {
-  if (arr->size == arr->capacity)
+  if (rpn->size == rpn->capacity)
   {
-    arr->capacity *= 2;
-    arr->data = realloc(arr->data, sizeof(lexeme) * arr->capacity);
+    rpn->capacity *= 2;
+    rpn->lex = realloc(rpn->lex, sizeof(lexeme_t) * rpn->capacity);
   }
-  arr->data[arr->size] = lex;
-  arr->size++;
+  rpn->lex[rpn->size] = lex;
+  rpn->size++;
+}
+
+// get actual field from rpn
+int get_actual_cell_from_rpn(rpn_t *rpn)
+{
+  return rpn->size;
 }
 
 // save lexemes in file
-void save_lexemes_in_file(t_rpn *arr)
+void save_lexemes_in_file(rpn_t *rpn)
 {
-  FILE *file = fopen("intermedia.txt", "w");
-  for (int i = 0; i < arr->size; i++)
+  FILE *file = fopen(FILENAME, "w");
+  for (int i = 0; i < rpn->size; i++)
   {
-    fprintf(file, "%s\n", (char *)get_lexeme_from_rpn(arr, i));
+    fprintf(file, "%s\n", (char *)get_lexeme_from_rpn(rpn, i));
   }
   fclose(file);
 }
 
 // free array of lexemes
-void free_rpn(t_rpn *arr)
+void free_rpn(rpn_t *rpn)
 {
-  free(arr->data);
-  free(arr);
+  free(rpn->lex);
+  free(rpn);
 }

@@ -5,6 +5,7 @@
   #include <string.h>
   #include "ts.h"
   #include "queue.h"
+  #include "stack.h"
   #include "rpn.h"
 
   #define COLOR_RED "\033[1;31m"
@@ -20,7 +21,7 @@
   char *yytext;
 
   // Rules
-  char* rule[56] = {
+  char* rule[55] = {
     "R0. PROGRAM -> CODE",
     "R1. CODE -> CODE BLOCK",
     "R2. CODE -> BLOCK",
@@ -67,31 +68,35 @@
     "R42. CONDITION -> CONDITION && COMPARATION",
     "R43. CONDITION -> CONDITION || COMPARATION",
     "R44. CONDITION -> COMPARATION",
-    "R45. COMPARATION -> EXPRESSION COMPARATOR EXPRESSION",
-    "R46. COMPARATION -> ( CONDITION )",
-    "R47. COMPARATOR -> ==",
-    "R48. COMPARATOR -> <",
-    "R49. COMPARATOR -> <=",
-    "R50. COMPARATOR -> >",
-    "R51. COMPARATOR -> >=",
-    "R52. COMPARATOR -> !=",
-    "R53. ITERATION -> while ( CONDITION ) CODE endwhile",
-    "R54. ITERATION -> while id in LIST do CODE endwhile"
+    "R45. COMPARATION -> ITEM COMPARATOR ITEM",
+    "R46. COMPARATOR -> ==",
+    "R47. COMPARATOR -> <",
+    "R48. COMPARATOR -> <=",
+    "R49. COMPARATOR -> >",
+    "R50. COMPARATOR -> >=",
+    "R51. COMPARATOR -> !=",
+    "R52. ITERATION -> while ( CONDITION ) CODE endwhile",
+    "R53. ITERATION -> while id in LIST do CODE endwhile",
   };
 
   // Symbol Table
-  t_list symbol_table;
+  list_t symbol_table;
 
   // Identifier
   char identifier[30];
 
   // Reverse Polish Notation
-  t_rpn *rpn;
+  rpn_t *rpn;
+
+  unsigned int item_quantity;
 
   // Queues
-  struct Queue* variable_queue;
-  struct Queue* datatype_queue;
+  queue_t* variable_queue;
+  queue_t* datatype_queue;
+  queue_t* branch_queue;
 
+  // Stack
+  stack_t* cell_stack;
 
   int yylex();
   int yyerror(char *);
@@ -163,9 +168,10 @@ BLOCK: DECLARATION separator {
 
 DECLARATION: op_dim open_bracket VARIABLES close_bracket op_as open_bracket DATATYPES close_bracket {
   char* variable_elem, *str_datatype;
-  enum type datatype;
+  type_t datatype;
 
-  while(!is_empty(variable_queue)) {
+  // load variable type
+  while(!queue_is_empty(variable_queue)) {
     // dequeue variable
     variable_elem = dequeue(variable_queue);
     strcpy(identifier, variable_elem);
@@ -224,25 +230,25 @@ DATATYPE: int_type {
 ASSIGNMENT: id op_assign ASSIGNMENT {
   strcpy(identifier, strdup($1));
 
-  add_lexeme_to_rpn(rpn, (lexeme*)strdup(identifier));
-  add_lexeme_to_rpn(rpn, (lexeme*)":=");
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(identifier));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)":=");
 
   puts(rule[18]);
 } | id op_assign EXPRESSION {
   strcpy(identifier, strdup($1));
 
-  add_lexeme_to_rpn(rpn, (lexeme*)strdup(identifier));
-  add_lexeme_to_rpn(rpn, (lexeme*)":=");
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(identifier));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)":=");
 
   puts(rule[19]);
 };
 
 EXPRESSION: EXPRESSION op_sum TERM {
-  add_lexeme_to_rpn(rpn, (lexeme*)"+");
+  add_lexeme_to_rpn(rpn, (lexeme_t*)"+");
 
   puts(rule[20]);
 } | EXPRESSION op_sub TERM {
-  add_lexeme_to_rpn(rpn, (lexeme*)"-");
+  add_lexeme_to_rpn(rpn, (lexeme_t*)"-");
 
   puts(rule[21]);
 } | TERM {
@@ -250,11 +256,11 @@ EXPRESSION: EXPRESSION op_sum TERM {
 };
 
 TERM: TERM op_mult FACTOR {
-  add_lexeme_to_rpn(rpn, (lexeme*)"*");
+  add_lexeme_to_rpn(rpn, (lexeme_t*)"*");
 
   puts(rule[23]);
 } | TERM op_div FACTOR {
-  add_lexeme_to_rpn(rpn, (lexeme*)"/");
+  add_lexeme_to_rpn(rpn, (lexeme_t*)"/");
 
   puts(rule[24]);
 } | FACTOR {
@@ -265,7 +271,7 @@ FACTOR: open_parenthesis EXPRESSION close_parenthesis {
   puts(rule[26]);
 } | id {
   strcpy(identifier, strdup($1));
-  add_lexeme_to_rpn(rpn, (lexeme*)strdup(identifier));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(identifier));
 
   puts(rule[27]);
 } | CONSTANT {
@@ -282,7 +288,7 @@ CONSTANT: int_constant {
 
   sprintf(integer_lexeme, "%d", integer);
 
-  add_lexeme_to_rpn(rpn, (lexeme*)strdup(integer_lexeme));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(integer_lexeme));
 
   puts(rule[30]);
 } | real_constant {
@@ -292,19 +298,24 @@ CONSTANT: int_constant {
   char real_lexeme[100];
   sprintf(real_lexeme, "%f", real);
 
-  add_lexeme_to_rpn(rpn, (lexeme*)strdup(real_lexeme));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(real_lexeme));
 
   puts(rule[31]);
 } | string_constant {
   char* string = delete_quotes($1);
   insert_string(&symbol_table, strdup(string));
-  add_lexeme_to_rpn(rpn, (lexeme*)strdup(string));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(string));
 
   puts(rule[32]);
 };
 
 
 LENGTH: fun_long open_parenthesis LIST close_parenthesis {
+  char item_quantity_str[100];
+  sprintf(item_quantity_str, "%d", item_quantity);
+
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(item_quantity_str));
+
   puts(rule[33]);
 };
 
@@ -313,14 +324,22 @@ LIST: open_bracket ITEMS close_bracket {
 };
 
 ITEMS: ITEMS comma ITEM {
+  ++item_quantity;
+
   puts(rule[35]);
 } | ITEM {
+  item_quantity = 1;
+
   puts(rule[36]);
 };
 
 ITEM: CONSTANT {
   puts(rule[37]);
 } | id {
+  strcpy(identifier, strdup($1));
+
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(identifier));
+
   puts(rule[38]);
 };
 
@@ -335,44 +354,86 @@ OUTPUT: op_display EXPRESSION {
 
 
 DECISION: op_if open_parenthesis CONDITION close_parenthesis CODE op_endif {
+  // define jump to end of if statement
+  int start_cell = pop_from_stack(cell_stack);
+  int actual_cell = get_actual_cell_from_rpn(rpn);
+
+  char target_cell[100];
+
+  sprintf(target_cell, "#%d", actual_cell + 1);
+
+  set_lexeme_from_rpn(rpn, start_cell, (lexeme_t*)strdup(target_cell));
+
   puts(rule[41]);
 } | op_if open_parenthesis CONDITION close_parenthesis CODE op_else CODE op_endif {
+  yyerror("else statement not supported");
+  
   puts(rule[42]);
 };
 
-CONDITION: CONDITION op_and COMPARATION {
+CONDITION: COMPARATION op_and COMPARATION {
+  yyerror("Error: 'and' operator is not supported");
+  /*
   puts(rule[43]);
-} | CONDITION op_or COMPARATION {
+  */
+} | COMPARATION op_or COMPARATION {
+  yyerror("Error: 'or' operator is not supported");
+  /*
   puts(rule[44]);
+  */
 } | COMPARATION {
+  // add jump to end of if statement or else
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
+  int actual_cell = get_actual_cell_from_rpn(rpn);
+  push_to_stack(cell_stack, actual_cell);
+
   puts(rule[45]);
 };
 
-COMPARATION: EXPRESSION COMPARATOR EXPRESSION {
+COMPARATION: ITEM COMPARATOR ITEM {
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("CMP"));
+
+  char* branch = dequeue(branch_queue);
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(branch));
+
   puts(rule[46]);
-} | open_parenthesis CONDITION close_parenthesis {
-  puts(rule[47]);
 };
 
 COMPARATOR: op_eq {
-  puts(rule[48]);
+  enqueue(branch_queue, "BNE");
+
+  puts(rule[47]);
 } | op_lt {
-  puts(rule[49]);
+  enqueue(branch_queue, "BGE");
+
+  puts(rule[48]);
 } | op_le {
-  puts(rule[50]);
+  enqueue(branch_queue, "BGT");
+
+  puts(rule[49]);
 } | op_gt {
-  puts(rule[51]);
+  enqueue(branch_queue, "BGE");
+
+  puts(rule[50]);
 } | op_ge {
-  puts(rule[52]);
+  enqueue(branch_queue, "BLT");
+
+  puts(rule[51]);
 } | op_ne {
-  puts(rule[53]);
+  enqueue(branch_queue, "BEQ");
+
+  puts(rule[52]);
 };
 
 
 ITERATION: op_while open_parenthesis CONDITION close_parenthesis CODE op_endwhile {
-  puts(rule[54]);
+  yyerror("Error: 'while' operator is not supported");
+
+  puts(rule[53]);
 } | op_while id op_in LIST op_do CODE op_endwhile {
-  puts(rule[55]);
+  yyerror("Error: 'while' operator is not supported");
+
+  puts(rule[54]);
 };
 %%
 
@@ -401,10 +462,12 @@ int main(int argc,char *argv[]) {
   }
 
   create_list(&symbol_table);
-  variable_queue = create_queue(500);
-  datatype_queue = create_queue(500);
+  variable_queue = create_queue();
+  datatype_queue = create_queue();
+  branch_queue = create_queue();
+  cell_stack = create_stack();
 
-  rpn = create_rpn(10);
+  rpn = create_rpn();
 
   yyparse();
 

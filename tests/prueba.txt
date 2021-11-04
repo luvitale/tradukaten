@@ -17,7 +17,7 @@ total := 0.0;
 */ real out of range (max) /*
 */ total := 2147483648.0; /*
 
-if (akum = 1 && total = 0.0)
+if (total = 0.0)
   total := akum * (2 + 1.14);
   akum := akum + 1;
 

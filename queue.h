@@ -2,19 +2,19 @@
 #define QUEUE_H
 
 // queue of string structure
-struct Queue
+typedef struct Queue
 {
   int front, rear, size;
   unsigned int capacity;
   char **array;
-};
+} queue_t;
 
-struct Queue *create_queue();
-int is_empty(struct Queue *q);
-int is_full(struct Queue *q);
-void enqueue(struct Queue *q, char *item);
-char *dequeue(struct Queue *q);
-void free_queue(struct Queue *q);
-void show_queue(struct Queue *q);
+queue_t *create_queue();
+int queue_is_empty(queue_t *);
+int queue_is_full(queue_t *);
+void enqueue(queue_t *, char *);
+char *dequeue(queue_t *);
+void free_queue(queue_t *);
+void show_queue(queue_t *);
 
 #endif

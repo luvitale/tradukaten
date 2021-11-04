@@ -41,7 +41,7 @@ op_div "/"
 /*
  * Comparators
  */
-op_eq ("="|"==")
+op_eq (=|==)
 op_lt "<"
 op_le "<="
 op_gt ">"
