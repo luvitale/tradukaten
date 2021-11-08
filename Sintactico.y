@@ -11,6 +11,9 @@
   #define COLOR_RED "\033[1;31m"
   #define COLOR_RESET "\033[0m"
 
+  #define IS_NOT_AND 0
+  #define IS_AND 1
+
   int lineno;
 
   int yystopparser = 0;
@@ -21,7 +24,7 @@
   char *yytext;
 
   // Rules
-  char* rule[55] = {
+  char* rule[56] = {
     "R0. PROGRAM -> CODE",
     "R1. CODE -> CODE BLOCK",
     "R2. CODE -> BLOCK",
@@ -63,20 +66,21 @@
     "R38. ITEM -> id",
     "R39. INPUT -> get id",
     "R40. OUTPUT -> display EXPRESSION",
-    "R41. DECISION -> if ( CONDITION ) CODE endif",
-    "R41. DECISION -> if ( CONDITION ) CODE else CODE endif",
-    "R42. CONDITION -> CONDITION && COMPARATION",
-    "R43. CONDITION -> CONDITION || COMPARATION",
-    "R44. CONDITION -> COMPARATION",
-    "R45. COMPARATION -> ITEM COMPARATOR ITEM",
-    "R46. COMPARATOR -> ==",
-    "R47. COMPARATOR -> <",
-    "R48. COMPARATOR -> <=",
-    "R49. COMPARATOR -> >",
-    "R50. COMPARATOR -> >=",
-    "R51. COMPARATOR -> !=",
-    "R52. ITERATION -> while ( CONDITION ) CODE endwhile",
-    "R53. ITERATION -> while id in LIST do CODE endwhile",
+    "R41. DECISION -> IF_EVALUATOR CODE endif",
+    "R41. DECISION -> IF_EVALUATOR CODE else CODE endif",
+    "R42. CONDITION -> CONDITION && comparator",
+    "R43. IF_EVALUATOR -> if ( CONDITION )"
+    "R44. CONDITION -> CONDITION || comparator",
+    "R45. CONDITION -> comparator",
+    "R46. comparator -> ITEM COMPARATOR ITEM",
+    "R47. COMPARATOR -> ==",
+    "R48. COMPARATOR -> <",
+    "R49. COMPARATOR -> <=",
+    "R50. COMPARATOR -> >",
+    "R51. COMPARATOR -> >=",
+    "R52. COMPARATOR -> !=",
+    "R53. ITERATION -> while ( CONDITION ) CODE endwhile",
+    "R54. ITERATION -> while id in LIST do CODE endwhile",
   };
 
   // Symbol Table
@@ -89,9 +93,19 @@
   // Reverse Polish Notation
   rpn_t *rpn;
 
+
+  // Counters
   unsigned int item_quantity;
 
+  // Util variables
   int is_while_loop;
+  char logical_operator[3];
+  char comparator[3];
+  char comparator1[3];
+  char comparator2[3];
+  char branch[3];
+  int first_condition_jump_cell;
+
 
   // Queues
   queue_t* variable_queue;
@@ -101,13 +115,17 @@
 
   // Stack
   stack_t* cell_stack;
+  stack_t* is_and_stack;
 
   int yylex();
   int yyerror(char *);
 
   void show_help(char *);
 
-  char* delete_quotes(char *);
+  char *delete_quotes(char *);
+
+  char *get_corresponding_branch(char *);
+  char *get_opposite_branch(char *);
 %}
 
 %union {
@@ -364,19 +382,26 @@ OUTPUT: op_display EXPRESSION {
 };
 
 
-DECISION: op_if open_parenthesis CONDITION close_parenthesis CODE op_endif {
+DECISION: IF_EVALUATOR CODE op_endif {
   // define jump to end of if statement
   int start_cell = pop_from_stack(cell_stack);
   int actual_cell = get_actual_cell_from_rpn(rpn);
 
-  char target_cell[100];
+  char target_cell[5];
 
   sprintf(target_cell, "#%d", actual_cell + 1);
 
   set_lexeme_from_rpn(rpn, start_cell, (lexeme_t*)strdup(target_cell));
 
+  // when there is AND operator
+  if (pop_from_stack(is_and_stack) == IS_AND) {
+    start_cell = pop_from_stack(cell_stack);
+    sprintf(target_cell, "#%d", actual_cell + 1);
+    set_lexeme_from_rpn(rpn, start_cell, (lexeme_t*)strdup(target_cell));
+  }
+
   puts(rule[41]);
-} | op_if open_parenthesis CONDITION close_parenthesis CODE op_else {
+} | IF_EVALUATOR CODE op_else {
   // add jump to end of if statement
   add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("BI"));
   add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
@@ -385,7 +410,7 @@ DECISION: op_if open_parenthesis CONDITION close_parenthesis CODE op_endif {
   int start_cell = pop_from_stack(cell_stack);
   int actual_cell = get_actual_cell_from_rpn(rpn);
 
-  char target_cell[100];
+  char target_cell[5];
 
   sprintf(target_cell, "#%d", actual_cell + 1);
 
@@ -397,7 +422,7 @@ DECISION: op_if open_parenthesis CONDITION close_parenthesis CODE op_endif {
   int start_cell = pop_from_stack(cell_stack);
   int actual_cell = get_actual_cell_from_rpn(rpn);
 
-  char target_cell[100];
+  char target_cell[5];
 
   sprintf(target_cell, "#%d", actual_cell + 1);
 
@@ -406,60 +431,123 @@ DECISION: op_if open_parenthesis CONDITION close_parenthesis CODE op_endif {
   puts(rule[42]);
 };
 
-CONDITION: COMPARATION op_and COMPARATION {
-  yyerror("Error: 'and' operator is not supported");
+IF_EVALUATOR: op_if open_parenthesis CONDITION close_parenthesis {
+  // Single condition
+  if (strcmp(logical_operator, "\0") != 0) {
+    char branch[3];
+    strcpy(branch, strdup(get_opposite_branch(comparator)));
+    
+    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("CMP"));
+    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(branch));
+    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
+
+    push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
+
+    push_to_stack(is_and_stack, IS_NOT_AND);
+  }
+
+  strcpy(logical_operator, "\0");
 
   puts(rule[43]);
-} | COMPARATION op_or COMPARATION {
-  yyerror("Error: 'or' operator is not supported");
+}
+
+CONDITION: comparator {
+  strcpy(comparator1, comparator);
+} op_and comparator {
+  strcpy(comparator2, comparator);
+  strcpy(logical_operator, "&&");
+
+  // comparator 1
+  strcpy(branch, strdup(get_opposite_branch(comparator1)));
+
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("CMP"));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(branch));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
+
+  push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
+
+  // comparator 2
+  strcpy(branch, strdup(get_opposite_branch(comparator2)));
+
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("CMP"));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(branch));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
+
+  push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
+  
+  push_to_stack(is_and_stack, IS_AND);
 
   puts(rule[44]);
-} | COMPARATION {
-  // add jump to end of if statement or else
+} | comparator {
+  strcpy(comparator1, comparator);
+} op_or comparator {
+  strcpy(comparator2, comparator);
+  strcpy(logical_operator, "||");
+
+  // comparator 1
+  strcpy(branch, strdup(get_corresponding_branch(comparator1)));
+
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("CMP"));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(branch));
   add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
-  int actual_cell = get_actual_cell_from_rpn(rpn);
-  push_to_stack(cell_stack, actual_cell);
+
+  first_condition_jump_cell = get_actual_cell_from_rpn(rpn);
+
+  // comparator 2
+  strcpy(branch, strdup(get_opposite_branch(comparator2)));
+
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("CMP"));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(branch));
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
+
+  push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
+
+  // Change jump of first condition
+  char target_cell[5];
+  sprintf(target_cell, "#%d", get_actual_cell_from_rpn(rpn) + 1);
+  set_lexeme_from_rpn(rpn, first_condition_jump_cell, (lexeme_t*)strdup(target_cell));
+
+  push_to_stack(is_and_stack, IS_NOT_AND);
 
   puts(rule[45]);
-};
-
-COMPARATION: ITEM COMPARATOR ITEM {
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("CMP"));
-
-  char* branch = dequeue(branch_queue);
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(branch));
-
+} | comparator {
   puts(rule[46]);
 };
 
-COMPARATOR: op_eq {
-  enqueue(branch_queue, "BNE");
-
+comparator: ITEM COMPARATOR ITEM {
   puts(rule[47]);
-} | op_lt {
-  enqueue(branch_queue, "BGE");
+};
+
+COMPARATOR: op_eq {
+  strcpy(comparator, strdup("=="));
 
   puts(rule[48]);
-} | op_le {
-  enqueue(branch_queue, "BGT");
+} | op_lt {
+  strcpy(comparator, strdup("<"));
 
   puts(rule[49]);
-} | op_gt {
-  enqueue(branch_queue, "BGE");
+} | op_le {
+  strcpy(comparator, strdup("<="));
 
   puts(rule[50]);
-} | op_ge {
-  enqueue(branch_queue, "BLT");
+} | op_gt {
+  strcpy(comparator, strdup(">"));
 
   puts(rule[51]);
-} | op_ne {
-  enqueue(branch_queue, "BEQ");
+} | op_ge {
+  strcpy(comparator, strdup(">="));
 
   puts(rule[52]);
+} | op_ne {
+  strcpy(comparator, strdup("!="));
+
+  puts(rule[53]);
 };
 
 
 ITERATION: op_while {
+  yyerror("While not implemented");
+
   // add start etiquete
   add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("ET"));
   int actual_cell = get_actual_cell_from_rpn(rpn);
@@ -470,7 +558,7 @@ ITERATION: op_while {
   int actual_cell = get_actual_cell_from_rpn(rpn);
   push_to_stack(cell_stack, actual_cell);
 
-  puts(rule[53]);
+  puts(rule[54]);
 } CODE op_endwhile {
   // define jump to start of while statement
   add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("BI"));
@@ -487,8 +575,10 @@ ITERATION: op_while {
   sprintf(target_cell, "#%d", actual_cell + 1);
   set_lexeme_from_rpn(rpn, start_cell, (lexeme_t*)strdup(target_cell));
 
-  puts(rule[54]);
+  puts(rule[55]);
 } | op_while id op_in {
+  yyerror("While not implemented");
+
   is_while_loop = 1;
 } LIST op_do {
   is_while_loop = 0;
@@ -559,7 +649,7 @@ ITERATION: op_while {
     }
   }
 
-  puts(rule[55]);
+  puts(rule[56]);
 };
 %%
 
@@ -593,6 +683,7 @@ int main(int argc,char *argv[]) {
   branch_queue = create_queue();
   while_queue = create_queue();
   cell_stack = create_stack();
+  is_and_stack = create_stack();
 
   rpn = create_rpn();
 
@@ -637,4 +728,52 @@ char *delete_quotes(char *lex)
   }
   *str = '\0';
   return start_str;
+}
+
+char *get_corresponding_branch(char *comparator) {
+  if (strcmp(comparator, "==") == 0) {
+    return "BEQ";
+  }
+  else if (strcmp(comparator, "!=") == 0) {
+    return "BNE";
+  }
+  else if (strcmp(comparator, "<") == 0) {
+    return "BLT";
+  }
+  else if (strcmp(comparator, ">") == 0) {
+    return "BGT";
+  }
+  else if (strcmp(comparator, "<=") == 0) {
+    return "BLE";
+  }
+  else if (strcmp(comparator, ">=") == 0) {
+    return "BGE";
+  }
+  else {
+    return "\0";
+  }
+}
+
+char *get_opposite_branch(char *comparator) {
+  if (strcmp(comparator, "==") == 0) {
+    return "BNE";
+  }
+  else if (strcmp(comparator, "!=") == 0) {
+    return "BEQ";
+  }
+  else if (strcmp(comparator, "<") == 0) {
+    return "BGE";
+  }
+  else if (strcmp(comparator, "<=") == 0) {
+    return "BGT";
+  }
+  else if (strcmp(comparator, ">") == 0) {
+    return "BLE";
+  }
+  else if (strcmp(comparator, ">=") == 0) {
+    return "BLT";
+  }
+  else {
+    return "\0";
+  }
 }
