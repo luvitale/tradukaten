@@ -7,7 +7,7 @@
 Tradukaten (Traduka Kateno) estas kompililo farita por la [Programlingvaj kaj Kompililaj](https://polr.luvitale.net/unlam-languages-and-compilers) lernobjekto de [Komputila Inĝenierada](https://polr.luvitale.net/unlam-informatics-engineering) kariero de la [
 Nacia Universitato de La Matanza](https://www.unlam.edu.ar).
 
-> [![kompililo](https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/CompilationScheme-Spanish.png/300px-CompilationScheme-Spanish.png)](https://es.wikipedia.org/wiki/Compilador)
+> [![kompililo](https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Tradukil-fazoj.png/1280px-Tradukil-fazoj.png)](https://eo.wikipedia.org/wiki/Tradukilo)
 
 ## Instali dependecojn
 
