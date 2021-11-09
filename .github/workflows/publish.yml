@@ -20,11 +20,6 @@ jobs:
             original_extension: "exe"
             result_extension: ".exe"
 
-          - os: macos-latest
-            os_name: macos
-            original_extension: "app"
-            result_extension: ""
-
     steps:
       - name: Install dependencies
         run: choco install --verbose mingw make winflexbison3
