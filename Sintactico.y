@@ -24,7 +24,7 @@
   char *yytext;
 
   // Rules
-  char* rule[56] = {
+  char rule[56][56] = {
     "R0. PROGRAM -> CODE",
     "R1. CODE -> CODE BLOCK",
     "R2. CODE -> BLOCK",
@@ -386,10 +386,14 @@ ITEM: CONSTANT {
 
 
 INPUT: op_get id {
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("GET"));
+
   puts(rule[39]);
 };
 
 OUTPUT: op_display EXPRESSION {
+  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("DSP"));
+
   puts(rule[40]);
 };
 
@@ -718,6 +722,7 @@ int main(int argc,char *argv[]) {
 
   save_lexemes_in_file(rpn);
 
+  delete_list(&symbol_table);
   free_rpn(rpn);
 
   fclose(yyin);

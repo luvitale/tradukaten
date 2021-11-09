@@ -44,5 +44,6 @@ int insert_string(list_t *p, char *name);
 int insert_integer(list_t *p, int lex);
 int insert_real(list_t *p, double lex);
 void save_table_in_file(list_t *p);
+void delete_list(list_t *p);
 
 #endif

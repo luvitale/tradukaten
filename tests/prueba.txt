@@ -17,7 +17,7 @@ total := 0.0;
 */ real out of range (max) /*
 */ total := 2147483648.0; /*
 
-if (total = 0.0)
+if (total = 0.0 && akum >= 1)
   total := akum * (2 + 1.14);
   akum := akum + 1;
 
@@ -27,7 +27,7 @@ if (total = 0.0)
   */ rezult := "korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte"; /*
 endif
 
-if (akum == 10)
+if (akum >= 10 || akum >= 30)
   if (total == 10.0)
     rezult := "total and akum equal 10";
   else

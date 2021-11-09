@@ -1,5 +1,7 @@
 #include "ts.h"
 
+#define FILENAME "ts.txt"
+
 const char *const type_str[] = {
     [constant_int] = "Constant Integer",
     [constant_real] = "Constant Real",
@@ -27,8 +29,6 @@ type_t get_enum_type(const char *str)
       return i;
   return -1;
 }
-
-const char *symbol_table_filename = "ts.txt";
 
 void create_list(list_t *p)
 {
@@ -129,10 +129,23 @@ int insert_variable(list_t *p, char *lex, type_t datatype)
   return SUCCESS;
 }
 
+// Delete list
+void delete_list(list_t *p)
+{
+  node_t *aux;
+  while (*p)
+  {
+    aux = *p;
+    *p = (*p)->next;
+    free(aux);
+  }
+}
+
 void save_table_in_file(list_t *p)
 {
-  FILE *symbol_table_file = fopen(symbol_table_filename, "w+");
-  if (symbol_table_file == NULL)
+  FILE *symbol_table_file = fopen(FILENAME, "w+");
+
+  if (!symbol_table_file)
   {
     fputs("File error", stderr);
     exit(1);
