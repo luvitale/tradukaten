@@ -6,7 +6,7 @@
 
 Tradukaten (from Esperanto: Traduka Kateno, translation chain) is a compiler done for [Languages and Compilers](https://polr.luvitale.net/unlam-languages-and-compilers) subject of [Informatics Engineering](https://polr.luvitale.net/unlam-informatics-engineering) career from [Universidad Nacional de La Matanza](https://www.unlam.edu.ar).
 
-> [![compiler](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Compiler.svg/800px-Compiler.svg.png)](https://en.wikipedia.org/wiki/Compiler)
+> [![compiler](https://www.researchgate.net/profile/Elisabete-Ferreira-5/publication/220117730/figure/fig4/AS:305722458951685@1449901322234/Compiler-Architecture.png)](https://en.wikipedia.org/wiki/Compiler)
 
 ## Install dependencies
 
