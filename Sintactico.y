@@ -24,7 +24,7 @@
   char *yytext;
 
   // Rules
-  char rule[56][56] = {
+  char *rule[56] = {
     "R0. PROGRAM -> CODE",
     "R1. CODE -> CODE BLOCK",
     "R2. CODE -> BLOCK",
@@ -606,7 +606,7 @@ ITERATION: op_while {
   sprintf(target_cell, "#%d", start_jump_cell);
   set_lexeme_from_rpn(rpn, actual_cell, (lexeme_t*)strdup(target_cell));
 
-  puts(rule[55]);
+  puts(rule[54]);
 } | op_while id op_in {
   is_while_loop = TRUE;
 } LIST op_do {
@@ -678,7 +678,7 @@ ITERATION: op_while {
     }
   }
 
-  puts(rule[56]);
+  puts(rule[55]);
 };
 %%
 
