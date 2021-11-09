@@ -6,6 +6,8 @@
 
 Tradukaten (from Esperanto: Traduka Kateno, translation chain) is a compiler done for [Languages and Compilers](https://polr.luvitale.net/unlam-languages-and-compilers) subject of [Informatics Engineering](https://polr.luvitale.net/unlam-informatics-engineering) career from [Universidad Nacional de La Matanza](https://www.unlam.edu.ar).
 
+> [![compiler](https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/CompilationScheme-Spanish.png/300px-CompilationScheme-Spanish.png)](https://es.wikipedia.org/wiki/Compilador)
+
 ## Install dependencies
 
 * [GCC](https://gcc.gnu.org/)
@@ -30,6 +32,7 @@ choco install --verbose mingw make winflexbison3
 ### Makefile
 
 ```
+make clean
 make
 ```
 
@@ -38,7 +41,7 @@ make
 ```
 flex -o lex.yy.c Lexico.l
 bison -dyv Sintactico.y
-gcc lex.yy.c y.tab.c ts.c -o tradukaten.exe -fcommon
+gcc lex.yy.c y.tab.c ts.c queue.c rpn.c stack.c -o tradukaten.exe -fcommon
 ```
 
 Or
@@ -46,5 +49,11 @@ Or
 ```
 flex -o lex.yy.c Lexico.l
 bison -dyv Sintactico.y
-gcc lex.yy.c y.tab.c ts.c -o tradukaten.app -fcommon
+gcc lex.yy.c y.tab.c ts.c queue.c rpn.c stack.c -o tradukaten.app -fcommon
+```
+
+### Test
+
+```
+make test
 ```
