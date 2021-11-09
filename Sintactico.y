@@ -107,14 +107,14 @@
   int show = TRUE;
 
   // Queues
-  queue_t* variable_queue;
-  queue_t* datatype_queue;
-  queue_t* branch_queue;
-  queue_t* while_queue;
+  queue_str_t* variable_queue;
+  queue_str_t* datatype_queue;
+  queue_str_t* branch_queue;
+  queue_str_t* while_queue;
 
   // Stack
-  stack_t* cell_stack;
-  stack_t* is_and_stack;
+  stack_str_t* cell_stack;
+  stack_str_t* is_and_stack;
 
   int yylex();
   int yyerror(char *);

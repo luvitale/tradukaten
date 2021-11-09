@@ -8,13 +8,13 @@ typedef struct Stack
   int size;
   int capacity;
   int top;
-} stack_t;
+} stack_str_t;
 
-stack_t *create_stack();
-int stack_is_empty(stack_t *stack);
-int stack_is_full(stack_t *stack);
-void push_to_stack(stack_t *, int);
-int pop_from_stack(stack_t *);
-void free_stack(stack_t *);
+stack_str_t *create_stack();
+int stack_is_empty(stack_str_t *stack);
+int stack_is_full(stack_str_t *stack);
+void push_to_stack(stack_str_t *, int);
+int pop_from_stack(stack_str_t *);
+void free_stack(stack_str_t *);
 
 #endif

@@ -6,9 +6,9 @@
 #define INITIAL_CAPACITY 10
 
 // create a queue of string
-queue_t *create_queue()
+queue_str_t *create_queue()
 {
-  queue_t *queue = (queue_t *)malloc(sizeof(queue_t));
+  queue_str_t *queue = (queue_str_t *)malloc(sizeof(queue_str_t));
   queue->capacity = INITIAL_CAPACITY;
   queue->front = queue->size = 0;
   queue->rear = queue->capacity - 1;
@@ -17,19 +17,19 @@ queue_t *create_queue()
 }
 
 // check if the queue is empty
-int queue_is_empty(queue_t *queue)
+int queue_is_empty(queue_str_t *queue)
 {
   return queue->size == 0;
 }
 
 // check if the queue is full
-int queue_is_full(queue_t *queue)
+int queue_is_full(queue_str_t *queue)
 {
   return queue->size == queue->capacity;
 }
 
 // enqueue a string into the queue
-void enqueue(queue_t *queue, char *item)
+void enqueue(queue_str_t *queue, char *item)
 {
   if (queue_is_full(queue))
   {
@@ -47,7 +47,7 @@ void enqueue(queue_t *queue, char *item)
 }
 
 // dequeue a string from the queue
-char *dequeue(queue_t *queue)
+char *dequeue(queue_str_t *queue)
 {
   if (queue_is_empty(queue))
     return NULL;
@@ -59,7 +59,7 @@ char *dequeue(queue_t *queue)
 }
 
 // get the front item from the queue
-char *front(queue_t *queue)
+char *front(queue_str_t *queue)
 {
   if (queue_is_empty(queue))
     return NULL;
@@ -67,7 +67,7 @@ char *front(queue_t *queue)
 }
 
 // get the rear item from the queue
-char *rear(queue_t *queue)
+char *rear(queue_str_t *queue)
 {
   if (queue_is_empty(queue))
     return NULL;
@@ -75,14 +75,14 @@ char *rear(queue_t *queue)
 }
 
 // free the queue
-void free_queue(queue_t *queue)
+void free_queue(queue_str_t *queue)
 {
   free(queue->array);
   free(queue);
 }
 
 // show full queue
-void show_queue(queue_t *queue)
+void show_queue(queue_str_t *queue)
 {
   if (queue_is_empty(queue))
   {

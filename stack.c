@@ -4,9 +4,9 @@
 #define INITIAL_CAPACITY 10
 
 // create stack
-stack_t *create_stack()
+stack_str_t *create_stack()
 {
-  stack_t *stack = malloc(sizeof(stack_t));
+  stack_str_t *stack = malloc(sizeof(stack_str_t));
   stack->capacity = INITIAL_CAPACITY;
   stack->size = 0;
   stack->data = malloc(sizeof(void *) * stack->capacity);
@@ -14,19 +14,19 @@ stack_t *create_stack()
 }
 
 // check if stack is full
-int stack_is_full(stack_t *stack)
+int stack_is_full(stack_str_t *stack)
 {
   return stack->size == stack->capacity;
 }
 
 // check if stack is empty
-int stack_is_empty(stack_t *stack)
+int stack_is_empty(stack_str_t *stack)
 {
   return stack->size == 0;
 }
 
 // push element to stack
-void push_to_stack(stack_t *stack, int value)
+void push_to_stack(stack_str_t *stack, int value)
 {
   if (stack_is_full(stack))
   {
@@ -38,7 +38,7 @@ void push_to_stack(stack_t *stack, int value)
 }
 
 // pop element from stack
-int pop_from_stack(stack_t *stack)
+int pop_from_stack(stack_str_t *stack)
 {
   if (stack_is_empty(stack))
   {
@@ -50,7 +50,7 @@ int pop_from_stack(stack_t *stack)
 }
 
 // free stack
-void free_stack(stack_t *stack)
+void free_stack(stack_str_t *stack)
 {
   free(stack->data);
   free(stack);
