@@ -2,6 +2,7 @@
 #define RPN_H
 
 #include "utils/int_list.h"
+#include "ts.h"
 
 // lexeme string
 typedef char cell_t[100];
@@ -25,6 +26,6 @@ int get_size_of_rpn(rpn_t *);
 void save_cells_in_file(rpn_t *);
 void free_rpn(rpn_t *);
 
-void rpn_assembly(rpn_t *);
+void rpn_assembly(rpn_t *, table_t *);
 
 #endif

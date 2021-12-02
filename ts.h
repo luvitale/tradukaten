@@ -35,15 +35,18 @@ char *get_string_type(type_t type);
 // get enum type from string
 type_t get_enum_type(const char *type_str);
 
-typedef node_t *list_t;
+typedef node_t *table_t;
 
-void create_list(list_t *p);
-int insert_order(list_t *p, char *name, type_t datatype, char *value, int length);
-int insert_variable(list_t *p, char *name, type_t datatype);
-int insert_string(list_t *p, char *name);
-int insert_integer(list_t *p, int lex);
-int insert_real(list_t *p, double lex);
-void save_table_in_file(list_t *p);
-void delete_list(list_t *p);
+void create_list(table_t *p);
+
+type_t get_lex_type(table_t *, void *);
+
+int insert_order(table_t *p, char *name, type_t datatype, char *value, int length);
+int insert_variable(table_t *p, char *name, type_t datatype);
+int insert_string(table_t *p, char *name);
+int insert_integer(table_t *p, int lex);
+int insert_real(table_t *p, double lex);
+void save_table_in_file(table_t *p);
+void delete_list(table_t *p);
 
 #endif

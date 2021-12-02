@@ -30,12 +30,24 @@ type_t get_enum_type(const char *str)
   return -1;
 }
 
-void create_list(list_t *p)
+void create_list(table_t *p)
 {
   *p = NULL;
 }
 
-int insert_order(list_t *p, char *name, type_t datatype, char *value, int length)
+type_t get_lex_type(table_t *p, void *lex)
+{
+  table_t l = *p;
+  while (l != NULL)
+  {
+    if (l->value == lex)
+      return l->datatype;
+    l = l->next;
+  }
+  return -1;
+}
+
+int insert_order(table_t *p, char *name, type_t datatype, char *value, int length)
 {
   int result = -1;
   node_t *new = (node_t *)malloc(sizeof(node_t));
@@ -61,14 +73,14 @@ int insert_order(list_t *p, char *name, type_t datatype, char *value, int length
   return SUCCESS;
 }
 
-int insert_integer(list_t *p, int lex)
+int insert_integer(table_t *p, int lex)
 {
   int result = -1;
   char name[100];
   char lexeme[100];
 
-  sprintf(lexeme, "%d", lex);
   sprintf(name, "_%d", lex);
+  sprintf(lexeme, "%d", lex);
 
   result = insert_order(p, name, constant_int, lexeme, 0);
 
@@ -80,7 +92,7 @@ int insert_integer(list_t *p, int lex)
   return SUCCESS;
 }
 
-int insert_real(list_t *p, double lex)
+int insert_real(table_t *p, double lex)
 {
   int result = -1;
   char name[100];
@@ -99,14 +111,16 @@ int insert_real(list_t *p, double lex)
   return SUCCESS;
 }
 
-int insert_string(list_t *p, char *lex)
+int insert_string(table_t *p, char *lex)
 {
   int result = -1;
   char name[100];
+  char lexeme[100];
 
   sprintf(name, "_%s", lex);
+  sprintf(lexeme, "%s", lex);
 
-  result = insert_order(p, lex, constant_str, name, strlen(lex));
+  result = insert_order(p, name, constant_str, lexeme, strlen(lex));
 
   if (result == DUPLICATED)
   {
@@ -116,7 +130,7 @@ int insert_string(list_t *p, char *lex)
   return SUCCESS;
 }
 
-int insert_variable(list_t *p, char *lex, type_t datatype)
+int insert_variable(table_t *p, char *lex, type_t datatype)
 {
   int result = -1;
 
@@ -130,7 +144,7 @@ int insert_variable(list_t *p, char *lex, type_t datatype)
 }
 
 // Delete list
-void delete_list(list_t *p)
+void delete_list(table_t *p)
 {
   node_t *aux;
   while (*p)
@@ -141,7 +155,7 @@ void delete_list(list_t *p)
   }
 }
 
-void save_table_in_file(list_t *p)
+void save_table_in_file(table_t *p)
 {
   FILE *symbol_table_file = fopen(FILENAME, "w+");
 

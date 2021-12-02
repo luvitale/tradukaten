@@ -122,36 +122,36 @@ void free_rpn(rpn_t *rpn)
   free(rpn);
 }
 
-void do_binary_operation(rpn_t *rpn, FILE *fp, stack_structure_t *cell_stack, char *operation, char *op1, char *op2)
+void do_binary_operation(rpn_t *rpn, table_t *symbol_table, FILE *fp, stack_structure_t *cell_stack, char *operation, char *op1, char *op2)
 {
   pop_from_asm_stack(cell_stack, op2);
   pop_from_asm_stack(cell_stack, op1);
 
   fprintf(
       fp,
-      "FLD %s\n",
+      "\tFLD %s\n",
       op1);
 
   fprintf(
       fp,
-      "FLD %s\n",
+      "\tFLD %s\n",
       op2);
 
   if (strcmp(operation, "+") == 0)
   {
-    fprintf(fp, "FADD\n");
+    fprintf(fp, "\tFADD\n");
   }
   else if (strcmp(operation, "-") == 0)
   {
-    fprintf(fp, "FSUB\n");
+    fprintf(fp, "\tFSUB\n");
   }
   else if (strcmp(operation, "*") == 0)
   {
-    fprintf(fp, "FMUL\n");
+    fprintf(fp, "\tFMUL\n");
   }
   else if (strcmp(operation, "/") == 0)
   {
-    fprintf(fp, "FDIV\n");
+    fprintf(fp, "\tFDIV\n");
   }
 
   char result[100];
@@ -160,7 +160,7 @@ void do_binary_operation(rpn_t *rpn, FILE *fp, stack_structure_t *cell_stack, ch
 
   fprintf(
       fp,
-      "FSTP %s\n",
+      "\tFSTP %s\n",
       result);
 
   push_to_asm_stack(cell_stack, result);
@@ -192,17 +192,51 @@ char *get_asm_jump(char *branch)
   {
     return "JNE";
   }
-  return "";
+  else if (strcmp(branch, "BI") == 0)
+  {
+    return "JMP";
+  }
+  else
+  {
+    return "";
+  }
+}
+
+void add_asm_header(FILE *fp)
+{
+  fprintf(fp, ".MODEL LARGE\n");
+  fprintf(fp, ".386\n");
+  fprintf(fp, ".STACK 200h\n");
+  fprintf(fp, "\n");
+}
+
+void add_asm_data(FILE *fp, table_t *symbol_table)
+{
+  fprintf(fp, ".DATA\n");
+  fprintf(fp, "; Table of symbols\n");
+
+  node_t *symbol = *symbol_table;
+
+  while (symbol)
+  {
+    fprintf(fp, "%-25s %-5s %-30s\n", symbol->name, "dd", symbol->value ? symbol->value : "?");
+    symbol = symbol->next;
+  }
+
+  fprintf(fp, "\n");
 }
 
 void add_asm_start_code(FILE *fp)
 {
   fprintf(fp, ".CODE\n");
+  fprintf(fp, "\n");
+
   fprintf(fp, "START:\n");
-  fprintf(fp, "MOV AX, @DATA\n");
-  fprintf(fp, "MOV DS, AX\n");
-  fprintf(fp, "MOV es, AX\n");
-  fprintf(fp, "FINIT\n");
+  fprintf(fp, "\tMOV AX, @DATA\n");
+  fprintf(fp, "\tMOV DS, AX\n");
+  fprintf(fp, "\tMOV es, AX\n");
+  fprintf(fp, "\tFINIT\n");
+  fprintf(fp, "\n");
 }
 
 void add_asm_end_code(FILE *fp)
@@ -210,7 +244,7 @@ void add_asm_end_code(FILE *fp)
   fprintf(fp, "END START;\n");
 }
 
-void rpn_assembly(rpn_t *rpn)
+void rpn_assembly(rpn_t *rpn, table_t *symbol_table)
 {
   stack_structure_t cell_stack;
   create_asm_stack(&cell_stack, sizeof(char) * 100);
@@ -220,6 +254,10 @@ void rpn_assembly(rpn_t *rpn)
   char op1[100];
   char op2[100];
   char result[100];
+
+  add_asm_header(fp);
+
+  add_asm_data(fp, symbol_table);
 
   add_asm_start_code(fp);
 
@@ -233,6 +271,8 @@ void rpn_assembly(rpn_t *rpn)
 
     if (element_is_in_list)
     {
+      fprintf(fp, "\n");
+
       fprintf(
           fp,
           "@ET%d:\n",
@@ -246,7 +286,7 @@ void rpn_assembly(rpn_t *rpn)
 
       fprintf(
           fp,
-          "MOV %s %s\n",
+          "\tMOV %s %s\n",
           op1,
           op2);
     }
@@ -254,6 +294,8 @@ void rpn_assembly(rpn_t *rpn)
     {
       if (!element_is_in_list)
       {
+        fprintf(fp, "\n");
+
         fprintf(
             fp,
             "@ET%d:\n",
@@ -272,7 +314,7 @@ void rpn_assembly(rpn_t *rpn)
 
       fprintf(
           fp,
-          "%s @ET%d\n",
+          "\t%s @ET%d\n",
           asm_jump,
           num_cell);
     }
@@ -283,21 +325,21 @@ void rpn_assembly(rpn_t *rpn)
 
       fprintf(
           fp,
-          "FLD %s\n",
+          "\tFLD %s\n",
           op1);
 
       fprintf(
           fp,
-          "FCOMP %s\n",
+          "\tFCOMP %s\n",
           op2);
 
       fprintf(
           fp,
-          "FSTSW ax\n");
+          "\tFSTSW ax\n");
 
       fprintf(
           fp,
-          "SAHF\n");
+          "\tSAHF\n");
     }
     else if (strcmp(cell, "BLT") == 0)
     {
@@ -323,9 +365,13 @@ void rpn_assembly(rpn_t *rpn)
     {
       push_to_asm_stack(&cell_stack, cell);
     }
+    else if (strcmp(cell, "BI") == 0)
+    {
+      push_to_asm_stack(&cell_stack, cell);
+    }
     else if (strcmp(cell, "+") == 0 || strcmp(cell, "-") == 0 || strcmp(cell, "*") == 0 || strcmp(cell, "/") == 0)
     {
-      do_binary_operation(rpn, fp, &cell_stack, cell, op1, op2);
+      do_binary_operation(rpn, symbol_table, fp, &cell_stack, cell, op1, op2);
     }
     else if (strcmp(cell, "DSP") == 0)
     {
@@ -333,7 +379,7 @@ void rpn_assembly(rpn_t *rpn)
 
       fprintf(
           fp,
-          "DSP %s\n",
+          "\tDSP %s\n",
           op1);
     }
     else if (strcmp(cell, "GET") == 0)
@@ -342,7 +388,7 @@ void rpn_assembly(rpn_t *rpn)
 
       fprintf(
           fp,
-          "GET %s\n",
+          "\tGET %s\n",
           op1);
     }
     // id || cte
@@ -351,6 +397,8 @@ void rpn_assembly(rpn_t *rpn)
       push_to_asm_stack(&cell_stack, cell);
     }
   }
+
+  fprintf(fp, "\n");
 
   add_asm_end_code(fp);
 

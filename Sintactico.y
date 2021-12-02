@@ -84,7 +84,7 @@
   };
 
   // Symbol Table
-  list_t symbol_table;
+  table_t symbol_table;
 
   // Actual Item
   char actual_item[30];
@@ -167,7 +167,7 @@ PROGRAM: CODE {
 
   save_cells_in_file(rpn);
 
-  rpn_assembly(rpn);
+  rpn_assembly(rpn, &symbol_table);
 };
 
 CODE: CODE BLOCK {

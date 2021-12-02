@@ -1,3 +1,6 @@
+dim [ akum, total, rezult, nomo ] as [ integer, real, string, string ];
+
+akum := 0;
 akum := akum + 1;
 
 */ int out of range (min) /*
