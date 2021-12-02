@@ -1,6 +1,3 @@
-dim [ akum, total, rezult, nomo ] as [ integer, real, string, string ];
-
-akum := 0;
 akum := akum + 1;
 
 */ int out of range (min) /*
@@ -21,7 +18,7 @@ if (total = 0.0 && akum >= 1)
   total := akum * (2 + 1.14);
   akum := akum + 1;
 
-  rezult := "korekte";
+  display "korekte";
 
   */ string out of range /*
   */ rezult := "korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte"; /*
@@ -44,9 +41,11 @@ while (akum <= 10)
 endwhile
 
 while nomo in ["Tero", "Luno", "Marso"] do
-  display "Saluton " + nomo;
+  display "Saluton";
+  display nomo;
 endwhile
 
 display "Saluton Mondo!";
 get nomo;
-display "Saluton " + nomo;
+display "Saluton";
+display nomo;

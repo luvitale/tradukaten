@@ -4,8 +4,8 @@
   #include <stdlib.h>
   #include <string.h>
   #include "ts.h"
-  #include "queue.h"
-  #include "stack.h"
+  #include "utils/queue.h"
+  #include "utils/stack.h"
   #include "rpn.h"
 
   #define COLOR_RED "\033[1;31m"
@@ -162,7 +162,13 @@
 
 // Syntax & Grammar
 %%
-PROGRAM: CODE;
+PROGRAM: CODE {
+  save_table_in_file(&symbol_table);
+
+  save_cells_in_file(rpn);
+
+  rpn_assembly(rpn);
+};
 
 CODE: CODE BLOCK {
   puts(rule[1]);
@@ -447,7 +453,9 @@ DECISION: IF_EVALUATOR CODE op_endif {
   puts(rule[42]);
 };
 
-IF_EVALUATOR: op_if open_parenthesis CONDITION close_parenthesis {
+IF_EVALUATOR: op_if {
+  add_cell_to_rpn(rpn, (cell_t*)strdup("ET"));
+} open_parenthesis CONDITION close_parenthesis {
   // Single condition
   if (strcmp(logical_operator, "\0") == 0) {
     char branch[3];
@@ -717,10 +725,6 @@ int main(int argc,char *argv[]) {
   rpn = create_rpn();
 
   yyparse();
-
-  save_table_in_file(&symbol_table);
-
-  save_cells_in_file(rpn);
 
   delete_list(&symbol_table);
   free_rpn(rpn);

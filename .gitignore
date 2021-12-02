@@ -1,9 +1,12 @@
 .vscode
 
-*.app
-*.exe
 *.tab.*
 *.yy.*
 *.output
 ts.txt
 intermedia.txt
+
+*.asm
+
+*.app
+*.exe
