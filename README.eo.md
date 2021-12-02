@@ -41,7 +41,7 @@ make
 ```
 flex -o lex.yy.c Lexico.l
 bison -dyv Sintactico.y
-gcc lex.yy.c y.tab.c ts.c queue.c rpn.c stack.c -o tradukaten.exe -fcommon
+gcc lex.yy.c y.tab.c ts.c rpn.c utils/stack.c utils/queue.c utils/asm_stack.c utils/int_list.c -o tradukaten.exe -fcommon
 ```
 
 Aŭ
@@ -49,7 +49,7 @@ Aŭ
 ```
 flex -o lex.yy.c Lexico.l
 bison -dyv Sintactico.y
-gcc lex.yy.c y.tab.c ts.c queue.c rpn.c stack.c -o tradukaten.app -fcommon
+gcc lex.yy.c y.tab.c ts.c rpn.c utils/stack.c utils/queue.c utils/asm_stack.c utils/int_list.c -o tradukaten.app -fcommon
 ```
 
 ### Test

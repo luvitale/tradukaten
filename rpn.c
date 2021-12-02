@@ -219,7 +219,11 @@ void add_asm_data(FILE *fp, table_t *symbol_table)
 
   while (symbol)
   {
-    fprintf(fp, "%-25s %-5s %-30s\n", symbol->name, "dd", symbol->value ? symbol->value : "?");
+    fprintf(fp,
+            "%-30s %-5s %-30s\n",
+            symbol->name,
+            symbol->datatype == constant_str || symbol->datatype == str ? "db" : "dd",
+            symbol->datatype == integer || symbol->datatype == real ? "?" : symbol->value);
     symbol = symbol->next;
   }
 

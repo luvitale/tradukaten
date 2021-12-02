@@ -48,7 +48,7 @@ while nomo in ["Tero", "Luno", "Marso"] do
   display nomo;
 endwhile
 
-display "Saluton Mondo!";
+display "Saluton Mondo";
 get nomo;
 display "Saluton";
 display nomo;

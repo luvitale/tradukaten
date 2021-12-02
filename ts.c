@@ -79,7 +79,7 @@ int insert_integer(table_t *p, int lex)
   char name[100];
   char lexeme[100];
 
-  sprintf(name, "_%d", lex);
+  sprintf(name, "_i_%d", lex);
   sprintf(lexeme, "%d", lex);
 
   result = insert_order(p, name, constant_int, lexeme, 0);
@@ -98,7 +98,7 @@ int insert_real(table_t *p, double lex)
   char name[100];
   char lexeme[100];
 
-  sprintf(name, "_%lf", lex);
+  sprintf(name, "_r_%lf", lex);
   sprintf(lexeme, "%lf", lex);
 
   result = insert_order(p, name, constant_real, lexeme, 0);
@@ -110,6 +110,24 @@ int insert_real(table_t *p, double lex)
 
   return SUCCESS;
 }
+char *replace_char(char *str, char find, char replace)
+{
+  char *current_pos = strchr(str, find);
+  while (current_pos)
+  {
+    *current_pos = replace;
+    current_pos = strchr(current_pos, find);
+  }
+  return str;
+}
+
+char *get_string_name(char *str)
+{
+  char *name = (char *)malloc(sizeof(char) * 100);
+  sprintf(name, "%s", str);
+  replace_char(name, ' ', '_');
+  return name;
+}
 
 int insert_string(table_t *p, char *lex)
 {
@@ -117,7 +135,7 @@ int insert_string(table_t *p, char *lex)
   char name[100];
   char lexeme[100];
 
-  sprintf(name, "_%s", lex);
+  sprintf(name, "_s_%s", get_string_name(lex));
   sprintf(lexeme, "%s", lex);
 
   result = insert_order(p, name, constant_str, lexeme, strlen(lex));

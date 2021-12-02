@@ -46,6 +46,7 @@ int insert_variable(table_t *p, char *name, type_t datatype);
 int insert_string(table_t *p, char *name);
 int insert_integer(table_t *p, int lex);
 int insert_real(table_t *p, double lex);
+char *get_string_name(char *);
 void save_table_in_file(table_t *p);
 void delete_list(table_t *p);
 

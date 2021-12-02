@@ -311,7 +311,9 @@ CONSTANT: int_constant {
   int integer = $1;
   insert_integer(&symbol_table, integer);
 
-  sprintf(actual_item, "%d", integer);
+  sprintf(actual_item, "_i_%d", integer);
+
+  strcpy(actual_item, get_string_name(actual_item));
 
   if (show == TRUE) {
     add_cell_to_rpn(rpn, (cell_t*)strdup(actual_item));
@@ -322,7 +324,9 @@ CONSTANT: int_constant {
   double real = $1;
   insert_real(&symbol_table, real);
 
-  sprintf(actual_item, "%f", real);
+  sprintf(actual_item, "_r_%lf", real);
+
+  strcpy(actual_item, get_string_name(actual_item));
 
   if (show == TRUE) {
     add_cell_to_rpn(rpn, (cell_t*)strdup(actual_item));
@@ -333,10 +337,12 @@ CONSTANT: int_constant {
   char identifier[30];
   strcpy(identifier, delete_quotes($1));
   strcpy(actual_item, strdup(identifier));
-  insert_string(&symbol_table, strdup(identifier));
+  insert_string(&symbol_table, strdup(actual_item));
+
+  sprintf(actual_item, "_s_%s", get_string_name(actual_item));
 
   if (show == TRUE) {
-    add_cell_to_rpn(rpn, (cell_t*)strdup(identifier));
+    add_cell_to_rpn(rpn, (cell_t*)strdup(actual_item));
   }
 
   puts(rule[32]);
