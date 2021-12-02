@@ -392,6 +392,7 @@ ITEM: CONSTANT {
 
 
 INPUT: op_get id {
+  add_cell_to_rpn(rpn, (cell_t*)strdup($2));
   add_cell_to_rpn(rpn, (cell_t*)strdup("GET"));
 
   puts(rule[39]);

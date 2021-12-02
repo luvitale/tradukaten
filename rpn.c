@@ -329,9 +329,21 @@ void rpn_assembly(rpn_t *rpn)
     }
     else if (strcmp(cell, "DSP") == 0)
     {
+      pop_from_asm_stack(&cell_stack, op1);
+
+      fprintf(
+          fp,
+          "DSP %s\n",
+          op1);
     }
     else if (strcmp(cell, "GET") == 0)
     {
+      pop_from_asm_stack(&cell_stack, op1);
+
+      fprintf(
+          fp,
+          "GET %s\n",
+          op1);
     }
     // id || cte
     else
