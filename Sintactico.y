@@ -401,18 +401,18 @@ OUTPUT: op_display EXPRESSION {
 DECISION: IF_EVALUATOR CODE op_endif {
   // define jump to end of if statement
   int condition_jump_cell = pop_from_stack(cell_stack);
-  int actual_cell = get_actual_cell_from_rpn(rpn);
+  int actual_cell_num = get_size_of_rpn(rpn);
 
   char target_cell[5];
 
-  sprintf(target_cell, "#%d", actual_cell + 1);
+  sprintf(target_cell, "#%d", actual_cell_num + 1);
 
   set_cell_from_rpn(rpn, condition_jump_cell, (cell_t*)strdup(target_cell));
 
   // when there is AND operator
   if (pop_from_stack(is_and_stack) == TRUE) {
     condition_jump_cell = pop_from_stack(cell_stack);
-    sprintf(target_cell, "#%d", actual_cell + 1);
+    sprintf(target_cell, "#%d", actual_cell_num + 1);
     set_cell_from_rpn(rpn, condition_jump_cell, (cell_t*)strdup(target_cell));
   }
 
@@ -424,23 +424,23 @@ DECISION: IF_EVALUATOR CODE op_endif {
 
   // define jump to else statement
   int start_cell = pop_from_stack(cell_stack);
-  int actual_cell = get_actual_cell_from_rpn(rpn);
+  int actual_cell_num = get_size_of_rpn(rpn);
 
   char target_cell[5];
 
-  sprintf(target_cell, "#%d", actual_cell + 1);
+  sprintf(target_cell, "#%d", actual_cell_num + 1);
 
   set_cell_from_rpn(rpn, start_cell, (cell_t*)strdup(target_cell));
 
-  push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
+  push_to_stack(cell_stack, get_size_of_rpn(rpn));
 } CODE op_endif {
   // define jump to end of if statement
   int start_cell = pop_from_stack(cell_stack);
-  int actual_cell = get_actual_cell_from_rpn(rpn);
+  int actual_cell_num = get_size_of_rpn(rpn);
 
   char target_cell[5];
 
-  sprintf(target_cell, "#%d", actual_cell + 1);
+  sprintf(target_cell, "#%d", actual_cell_num + 1);
 
   set_cell_from_rpn(rpn, start_cell, (cell_t*)strdup(target_cell));
 
@@ -457,7 +457,7 @@ IF_EVALUATOR: op_if open_parenthesis CONDITION close_parenthesis {
     add_cell_to_rpn(rpn, (cell_t*)strdup(branch));
     add_cell_to_rpn(rpn, (cell_t*)strdup("JMP"));
 
-    push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
+    push_to_stack(cell_stack, get_size_of_rpn(rpn));
 
     push_to_stack(is_and_stack, FALSE);
   }
@@ -477,7 +477,7 @@ CONDITION: COMPARATION op_and {
   add_cell_to_rpn(rpn, (cell_t*)strdup(branch));
   add_cell_to_rpn(rpn, (cell_t*)strdup("JMP"));
 
-  push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
+  push_to_stack(cell_stack, get_size_of_rpn(rpn));
 } COMPARATION {
   strcpy(comparator2, comparator);
 
@@ -487,7 +487,7 @@ CONDITION: COMPARATION op_and {
   add_cell_to_rpn(rpn, (cell_t*)strdup(branch));
   add_cell_to_rpn(rpn, (cell_t*)strdup("JMP"));
 
-  push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
+  push_to_stack(cell_stack, get_size_of_rpn(rpn));
   
   push_to_stack(is_and_stack, TRUE);
 
@@ -504,7 +504,7 @@ CONDITION: COMPARATION op_and {
   add_cell_to_rpn(rpn, (cell_t*)strdup(branch));
   add_cell_to_rpn(rpn, (cell_t*)strdup("JMP"));
 
-  first_condition_jump_cell = get_actual_cell_from_rpn(rpn);
+  first_condition_jump_cell = get_size_of_rpn(rpn);
 } COMPARATION {
   strcpy(comparator2, comparator);
 
@@ -515,11 +515,11 @@ CONDITION: COMPARATION op_and {
   add_cell_to_rpn(rpn, (cell_t*)strdup(branch));
   add_cell_to_rpn(rpn, (cell_t*)strdup("JMP"));
 
-  push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
+  push_to_stack(cell_stack, get_size_of_rpn(rpn));
 
   // Change jump of first condition
   char target_cell[5];
-  sprintf(target_cell, "#%d", get_actual_cell_from_rpn(rpn) + 1);
+  sprintf(target_cell, "#%d", get_size_of_rpn(rpn) + 1);
   set_cell_from_rpn(rpn, first_condition_jump_cell, (cell_t*)strdup(target_cell));
 
   push_to_stack(is_and_stack, FALSE);
@@ -563,8 +563,8 @@ COMPARATOR: op_eq {
 ITERATION: op_while {
   // add start etiquete
   add_cell_to_rpn(rpn, (cell_t*)strdup("ET"));
-  int actual_cell = get_actual_cell_from_rpn(rpn);
-  push_to_stack(cell_stack, actual_cell);
+  int actual_cell_num = get_size_of_rpn(rpn);
+  push_to_stack(cell_stack, actual_cell_num);
 } open_parenthesis CONDITION close_parenthesis {
   // Single condition
   if (strcmp(logical_operator, "\0") == 0) {
@@ -574,7 +574,7 @@ ITERATION: op_while {
     add_cell_to_rpn(rpn, (cell_t*)strdup(branch));
     add_cell_to_rpn(rpn, (cell_t*)strdup("JMP"));
 
-    push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
+    push_to_stack(cell_stack, get_size_of_rpn(rpn));
 
     push_to_stack(is_and_stack, FALSE);
   }
@@ -587,24 +587,24 @@ ITERATION: op_while {
   add_cell_to_rpn(rpn, (cell_t*)strdup("BI"));
   add_cell_to_rpn(rpn, (cell_t*)strdup("JMP"));
 
-  int actual_cell = get_actual_cell_from_rpn(rpn);
+  int actual_cell_num = get_size_of_rpn(rpn);
 
   // change jump to end of while statement
   int condition_jump_cell = pop_from_stack(cell_stack);
-  sprintf(target_cell, "#%d", actual_cell + 1);
+  sprintf(target_cell, "#%d", actual_cell_num + 1);
   set_cell_from_rpn(rpn, condition_jump_cell, (cell_t*)strdup(target_cell));
 
   // when there is AND operator
   if (pop_from_stack(is_and_stack) == TRUE) {
     condition_jump_cell = pop_from_stack(cell_stack);
-    sprintf(target_cell, "#%d", actual_cell + 1);
+    sprintf(target_cell, "#%d", actual_cell_num + 1);
     set_cell_from_rpn(rpn, condition_jump_cell, (cell_t*)strdup(target_cell));
   }
 
   // change jump to start of while statement
   int start_jump_cell = pop_from_stack(cell_stack);
   sprintf(target_cell, "#%d", start_jump_cell);
-  set_cell_from_rpn(rpn, actual_cell, (cell_t*)strdup(target_cell));
+  set_cell_from_rpn(rpn, actual_cell_num, (cell_t*)strdup(target_cell));
 
   puts(rule[54]);
 } | op_while id op_in {
@@ -620,7 +620,7 @@ ITERATION: op_while {
   add_cell_to_rpn(rpn, (cell_t*)strdup("@act"));
   add_cell_to_rpn(rpn, (cell_t*)strdup(":="));
 
-  push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
+  push_to_stack(cell_stack, get_size_of_rpn(rpn));
 
   while (!queue_is_empty(while_queue)) {
     char item[30];
@@ -638,13 +638,13 @@ ITERATION: op_while {
       add_cell_to_rpn(rpn, (cell_t*)strdup("BEQ"));
       add_cell_to_rpn(rpn, (cell_t*)strdup("JMP"));
 
-      push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
+      push_to_stack(cell_stack, get_size_of_rpn(rpn));
     }
     
     actual_item_num++;
   }
 
-  push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
+  push_to_stack(cell_stack, get_size_of_rpn(rpn));
 } CODE op_endwhile {
   add_cell_to_rpn(rpn, (cell_t*)strdup("@act"));
   add_cell_to_rpn(rpn, (cell_t*)strdup("1"));

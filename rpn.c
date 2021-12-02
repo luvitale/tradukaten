@@ -62,12 +62,23 @@ void add_cell_to_rpn(rpn_t *rpn, cell_t *content)
 }
 
 /**
- * @brief Get actual cell from RPN
+ * @brief Get last cell from RPN
  * 
  * @param rpn 
  * @return int 
  */
-int get_actual_cell_from_rpn(rpn_t *rpn)
+cell_t *get_last_cell_from_rpn(rpn_t *rpn)
+{
+  return rpn->cell[rpn->size - 1];
+}
+
+/**
+ * @brief Get size of RPN
+ * 
+ * @param rpn 
+ * @return int - Quantity of cells
+ */
+int get_size_of_rpn(rpn_t *rpn)
 {
   return rpn->size;
 }
