@@ -1,6 +1,8 @@
 #ifndef RPN_H
 #define RPN_H
 
+#include "utils/int_list.h"
+
 // lexeme string
 typedef char cell_t[100];
 
@@ -11,6 +13,8 @@ typedef struct RPN
   int capacity;
   cell_t **cell;
 } rpn_t;
+
+int_list_t *et_list;
 
 rpn_t *create_rpn();
 cell_t *get_cell_from_rpn(rpn_t *, int);

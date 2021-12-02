@@ -17,6 +17,7 @@ rpn_t *create_rpn()
   rpn->size = 0;
   rpn->capacity = INITIAL_CAPACITY;
   rpn->cell = malloc(sizeof(cell_t) * rpn->capacity);
+  et_list = create_int_list();
   return rpn;
 }
 
@@ -58,6 +59,16 @@ void add_cell_to_rpn(rpn_t *rpn, cell_t *content)
   {
     rpn->capacity *= 2;
     rpn->cell = realloc(rpn->cell, sizeof(cell_t) * rpn->capacity);
+  }
+  // When the cell is a JMP
+  if (strstr((char *)content, "#"))
+  {
+    char num_cell_str[100];
+    sprintf(num_cell_str, "%s", (char *)&content[1]);
+
+    int num_cell = atoi(num_cell_str);
+
+    add_element_to_list(et_list, num_cell);
   }
   rpn->cell[rpn->size] = content;
   rpn->size++;
@@ -218,6 +229,16 @@ void rpn_assembly(rpn_t *rpn)
   {
     strcpy(cell, (char *)get_cell_from_rpn(rpn, i));
 
+    int element_is_in_list = is_element_in_list(et_list, i);
+
+    if (element_is_in_list)
+    {
+      fprintf(
+          fp,
+          "@ET%d:\n",
+          i);
+    }
+
     if (strcmp(cell, ":=") == 0)
     {
       pop_from_asm_stack(&cell_stack, op1);
@@ -229,14 +250,17 @@ void rpn_assembly(rpn_t *rpn)
           op1,
           op2);
     }
-    if (strcmp(cell, "ET") == 0)
+    else if (strcmp(cell, "ET") == 0)
     {
-      fprintf(
-          fp,
-          "@ET%d:\n",
-          i);
+      if (!element_is_in_list)
+      {
+        fprintf(
+            fp,
+            "@ET%d:\n",
+            i);
+      }
     }
-    if (strstr(cell, "#") != NULL)
+    else if (strstr(cell, "#") != NULL)
     {
       char asm_jump[100];
       pop_from_asm_stack(&cell_stack, asm_jump);
