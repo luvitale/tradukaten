@@ -251,25 +251,25 @@ DATATYPE: int_type {
 ASSIGNMENT: id op_assign ASSIGNMENT {
   strcpy(identifier, strdup($1));
 
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(identifier));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)":=");
+  add_cell_to_rpn(rpn, (cell_t*)strdup(identifier));
+  add_cell_to_rpn(rpn, (cell_t*)":=");
 
   puts(rule[18]);
 } | id op_assign EXPRESSION {
   strcpy(identifier, strdup($1));
 
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(identifier));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)":=");
+  add_cell_to_rpn(rpn, (cell_t*)strdup(identifier));
+  add_cell_to_rpn(rpn, (cell_t*)":=");
 
   puts(rule[19]);
 };
 
 EXPRESSION: EXPRESSION op_sum TERM {
-  add_lexeme_to_rpn(rpn, (lexeme_t*)"+");
+  add_cell_to_rpn(rpn, (cell_t*)"+");
 
   puts(rule[20]);
 } | EXPRESSION op_sub TERM {
-  add_lexeme_to_rpn(rpn, (lexeme_t*)"-");
+  add_cell_to_rpn(rpn, (cell_t*)"-");
 
   puts(rule[21]);
 } | TERM {
@@ -277,11 +277,11 @@ EXPRESSION: EXPRESSION op_sum TERM {
 };
 
 TERM: TERM op_mult FACTOR {
-  add_lexeme_to_rpn(rpn, (lexeme_t*)"*");
+  add_cell_to_rpn(rpn, (cell_t*)"*");
 
   puts(rule[23]);
 } | TERM op_div FACTOR {
-  add_lexeme_to_rpn(rpn, (lexeme_t*)"/");
+  add_cell_to_rpn(rpn, (cell_t*)"/");
 
   puts(rule[24]);
 } | FACTOR {
@@ -292,7 +292,7 @@ FACTOR: open_parenthesis EXPRESSION close_parenthesis {
   puts(rule[26]);
 } | id {
   strcpy(identifier, strdup($1));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(identifier));
+  add_cell_to_rpn(rpn, (cell_t*)strdup(identifier));
 
   puts(rule[27]);
 } | CONSTANT {
@@ -308,7 +308,7 @@ CONSTANT: int_constant {
   sprintf(actual_item, "%d", integer);
 
   if (show == TRUE) {
-    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(actual_item));
+    add_cell_to_rpn(rpn, (cell_t*)strdup(actual_item));
   }
 
   puts(rule[30]);
@@ -319,7 +319,7 @@ CONSTANT: int_constant {
   sprintf(actual_item, "%f", real);
 
   if (show == TRUE) {
-    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(actual_item));
+    add_cell_to_rpn(rpn, (cell_t*)strdup(actual_item));
   }
 
   puts(rule[31]);
@@ -330,7 +330,7 @@ CONSTANT: int_constant {
   insert_string(&symbol_table, strdup(identifier));
 
   if (show == TRUE) {
-    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(identifier));
+    add_cell_to_rpn(rpn, (cell_t*)strdup(identifier));
   }
 
   puts(rule[32]);
@@ -341,7 +341,7 @@ LENGTH: fun_long open_parenthesis LIST close_parenthesis {
   char item_quantity_str[100];
   sprintf(item_quantity_str, "%d", item_quantity);
 
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(item_quantity_str));
+  add_cell_to_rpn(rpn, (cell_t*)strdup(item_quantity_str));
 
   puts(rule[33]);
 };
@@ -378,7 +378,7 @@ ITEM: CONSTANT {
   strcpy(actual_item, strdup($1));
 
   if (show == TRUE) {
-    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(actual_item));
+    add_cell_to_rpn(rpn, (cell_t*)strdup(actual_item));
   }
 
   puts(rule[38]);
@@ -386,13 +386,13 @@ ITEM: CONSTANT {
 
 
 INPUT: op_get id {
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("GET"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("GET"));
 
   puts(rule[39]);
 };
 
 OUTPUT: op_display EXPRESSION {
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("DSP"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("DSP"));
 
   puts(rule[40]);
 };
@@ -407,20 +407,20 @@ DECISION: IF_EVALUATOR CODE op_endif {
 
   sprintf(target_cell, "#%d", actual_cell + 1);
 
-  set_lexeme_from_rpn(rpn, condition_jump_cell, (lexeme_t*)strdup(target_cell));
+  set_cell_from_rpn(rpn, condition_jump_cell, (cell_t*)strdup(target_cell));
 
   // when there is AND operator
   if (pop_from_stack(is_and_stack) == TRUE) {
     condition_jump_cell = pop_from_stack(cell_stack);
     sprintf(target_cell, "#%d", actual_cell + 1);
-    set_lexeme_from_rpn(rpn, condition_jump_cell, (lexeme_t*)strdup(target_cell));
+    set_cell_from_rpn(rpn, condition_jump_cell, (cell_t*)strdup(target_cell));
   }
 
   puts(rule[41]);
 } | IF_EVALUATOR CODE op_else {
   // add jump to end of if statement
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("BI"));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("BI"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("JMP"));
 
   // define jump to else statement
   int start_cell = pop_from_stack(cell_stack);
@@ -430,7 +430,7 @@ DECISION: IF_EVALUATOR CODE op_endif {
 
   sprintf(target_cell, "#%d", actual_cell + 1);
 
-  set_lexeme_from_rpn(rpn, start_cell, (lexeme_t*)strdup(target_cell));
+  set_cell_from_rpn(rpn, start_cell, (cell_t*)strdup(target_cell));
 
   push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
 } CODE op_endif {
@@ -442,7 +442,7 @@ DECISION: IF_EVALUATOR CODE op_endif {
 
   sprintf(target_cell, "#%d", actual_cell + 1);
 
-  set_lexeme_from_rpn(rpn, start_cell, (lexeme_t*)strdup(target_cell));
+  set_cell_from_rpn(rpn, start_cell, (cell_t*)strdup(target_cell));
 
   puts(rule[42]);
 };
@@ -453,9 +453,9 @@ IF_EVALUATOR: op_if open_parenthesis CONDITION close_parenthesis {
     char branch[3];
     strcpy(branch, strdup(get_opposite_branch(comparator)));
     
-    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("CMP"));
-    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(branch));
-    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
+    add_cell_to_rpn(rpn, (cell_t*)strdup("CMP"));
+    add_cell_to_rpn(rpn, (cell_t*)strdup(branch));
+    add_cell_to_rpn(rpn, (cell_t*)strdup("JMP"));
 
     push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
 
@@ -473,9 +473,9 @@ CONDITION: COMPARATION op_and {
   
   strcpy(branch, strdup(get_opposite_branch(comparator1)));
 
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("CMP"));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(branch));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("CMP"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup(branch));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("JMP"));
 
   push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
 } COMPARATION {
@@ -483,9 +483,9 @@ CONDITION: COMPARATION op_and {
 
   strcpy(branch, strdup(get_opposite_branch(comparator2)));
 
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("CMP"));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(branch));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("CMP"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup(branch));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("JMP"));
 
   push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
   
@@ -500,9 +500,9 @@ CONDITION: COMPARATION op_and {
   // Comparator 1
   strcpy(branch, strdup(get_corresponding_branch(comparator1)));
 
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("CMP"));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(branch));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("CMP"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup(branch));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("JMP"));
 
   first_condition_jump_cell = get_actual_cell_from_rpn(rpn);
 } COMPARATION {
@@ -511,16 +511,16 @@ CONDITION: COMPARATION op_and {
   // Comparator 2
   strcpy(branch, strdup(get_opposite_branch(comparator2)));
 
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("CMP"));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(branch));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("CMP"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup(branch));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("JMP"));
 
   push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
 
   // Change jump of first condition
   char target_cell[5];
   sprintf(target_cell, "#%d", get_actual_cell_from_rpn(rpn) + 1);
-  set_lexeme_from_rpn(rpn, first_condition_jump_cell, (lexeme_t*)strdup(target_cell));
+  set_cell_from_rpn(rpn, first_condition_jump_cell, (cell_t*)strdup(target_cell));
 
   push_to_stack(is_and_stack, FALSE);
 
@@ -562,7 +562,7 @@ COMPARATOR: op_eq {
 
 ITERATION: op_while {
   // add start etiquete
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("ET"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("ET"));
   int actual_cell = get_actual_cell_from_rpn(rpn);
   push_to_stack(cell_stack, actual_cell);
 } open_parenthesis CONDITION close_parenthesis {
@@ -570,9 +570,9 @@ ITERATION: op_while {
   if (strcmp(logical_operator, "\0") == 0) {
     strcpy(branch, strdup(get_opposite_branch(comparator)));
     
-    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("CMP"));
-    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(branch));
-    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
+    add_cell_to_rpn(rpn, (cell_t*)strdup("CMP"));
+    add_cell_to_rpn(rpn, (cell_t*)strdup(branch));
+    add_cell_to_rpn(rpn, (cell_t*)strdup("JMP"));
 
     push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
 
@@ -584,27 +584,27 @@ ITERATION: op_while {
   // define jump to start of while statement
   char target_cell[5];
 
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("BI"));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("BI"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("JMP"));
 
   int actual_cell = get_actual_cell_from_rpn(rpn);
 
   // change jump to end of while statement
   int condition_jump_cell = pop_from_stack(cell_stack);
   sprintf(target_cell, "#%d", actual_cell + 1);
-  set_lexeme_from_rpn(rpn, condition_jump_cell, (lexeme_t*)strdup(target_cell));
+  set_cell_from_rpn(rpn, condition_jump_cell, (cell_t*)strdup(target_cell));
 
   // when there is AND operator
   if (pop_from_stack(is_and_stack) == TRUE) {
     condition_jump_cell = pop_from_stack(cell_stack);
     sprintf(target_cell, "#%d", actual_cell + 1);
-    set_lexeme_from_rpn(rpn, condition_jump_cell, (lexeme_t*)strdup(target_cell));
+    set_cell_from_rpn(rpn, condition_jump_cell, (cell_t*)strdup(target_cell));
   }
 
   // change jump to start of while statement
   int start_jump_cell = pop_from_stack(cell_stack);
   sprintf(target_cell, "#%d", start_jump_cell);
-  set_lexeme_from_rpn(rpn, actual_cell, (lexeme_t*)strdup(target_cell));
+  set_cell_from_rpn(rpn, actual_cell, (cell_t*)strdup(target_cell));
 
   puts(rule[54]);
 } | op_while id op_in {
@@ -616,27 +616,27 @@ ITERATION: op_while {
   char actual_item_num_str[100];
   char* identifier = strdup($2);
 
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("1"));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("@act"));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(":="));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("1"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("@act"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup(":="));
 
   push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
 
   while (!queue_is_empty(while_queue)) {
     char item[30];
     strcpy(item, strdup(dequeue(while_queue)));
-    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(item));
-    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(identifier));
-    add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(":="));
+    add_cell_to_rpn(rpn, (cell_t*)strdup(item));
+    add_cell_to_rpn(rpn, (cell_t*)strdup(identifier));
+    add_cell_to_rpn(rpn, (cell_t*)strdup(":="));
 
     if (actual_item_num < item_quantity) {
       sprintf(actual_item_num_str, "%d", actual_item_num);
-      add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("@act"));
-      add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(actual_item_num_str));
+      add_cell_to_rpn(rpn, (cell_t*)strdup("@act"));
+      add_cell_to_rpn(rpn, (cell_t*)strdup(actual_item_num_str));
 
-      add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("CMP"));
-      add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("BEQ"));
-      add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("JMP"));
+      add_cell_to_rpn(rpn, (cell_t*)strdup("CMP"));
+      add_cell_to_rpn(rpn, (cell_t*)strdup("BEQ"));
+      add_cell_to_rpn(rpn, (cell_t*)strdup("JMP"));
 
       push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
     }
@@ -646,20 +646,20 @@ ITERATION: op_while {
 
   push_to_stack(cell_stack, get_actual_cell_from_rpn(rpn));
 } CODE op_endwhile {
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("@act"));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("1"));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("+"));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("@act"));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(":="));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("@act"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("1"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("+"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("@act"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup(":="));
 
   char item_quantity_str[100];
 
   sprintf(item_quantity_str, "%d", item_quantity);
 
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("@act"));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(item_quantity_str));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("CMP"));
-  add_lexeme_to_rpn(rpn, (lexeme_t*)strdup("BLE"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("@act"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup(item_quantity_str));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("CMP"));
+  add_cell_to_rpn(rpn, (cell_t*)strdup("BLE"));
 
   int code_cell = pop_from_stack(cell_stack);
 
@@ -670,11 +670,11 @@ ITERATION: op_while {
 
     if (stack_is_empty(cell_stack)) {
       sprintf(target_cell, "#%d", cell + 1);
-      add_lexeme_to_rpn(rpn, (lexeme_t*)strdup(target_cell));
+      add_cell_to_rpn(rpn, (cell_t*)strdup(target_cell));
     }
     else {
       sprintf(target_cell, "#%d", code_cell + 1);
-      set_lexeme_from_rpn(rpn, cell, (lexeme_t*)strdup(target_cell));
+      set_cell_from_rpn(rpn, cell, (cell_t*)strdup(target_cell));
     }
   }
 
@@ -720,7 +720,7 @@ int main(int argc,char *argv[]) {
 
   save_table_in_file(&symbol_table);
 
-  save_lexemes_in_file(rpn);
+  save_cells_in_file(rpn);
 
   delete_list(&symbol_table);
   free_rpn(rpn);
