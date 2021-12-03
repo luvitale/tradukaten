@@ -6,6 +6,7 @@
   #include "ts.h"
   #include "utils/queue.h"
   #include "utils/stack.h"
+  #include "utils/int_list.h"
   #include "rpn.h"
 
   #define COLOR_RED "\033[1;31m"
@@ -91,6 +92,9 @@
   char actual_item[30];
   char identifier[30];
 
+  // ET
+  int_list_t et_list;
+
   // Reverse Polish Notation
   rpn_t *rpn;
 
@@ -168,7 +172,7 @@ PROGRAM: CODE {
 
   save_cells_in_file(rpn);
 
-  rpn_assembly(rpn, &symbol_table);
+  rpn_assemble(rpn, &symbol_table, &et_list);
 };
 
 CODE: CODE BLOCK {
@@ -274,9 +278,21 @@ ASSIGNMENT: id op_assign ASSIGNMENT {
 EXPRESSION: EXPRESSION op_sum TERM {
   add_cell_to_rpn(rpn, (cell_t*)strdup("+"));
 
+  // create result variable
+  char result_variable_name[100];
+  sprintf(result_variable_name, "@result_%d", get_size_of_rpn(rpn));
+  type_t result_variable_datatype = real;
+  insert_variable(&symbol_table, result_variable_name, result_variable_datatype);
+
   puts(rule[20]);
 } | EXPRESSION op_sub TERM {
   add_cell_to_rpn(rpn, (cell_t*)strdup("-"));
+
+  // create result variable
+  char result_variable_name[100];
+  sprintf(result_variable_name, "@result_%d", get_size_of_rpn(rpn));
+  type_t result_variable_datatype = real;
+  insert_variable(&symbol_table, result_variable_name, result_variable_datatype);
 
   puts(rule[21]);
 } | TERM {
@@ -286,9 +302,21 @@ EXPRESSION: EXPRESSION op_sum TERM {
 TERM: TERM op_mult FACTOR {
   add_cell_to_rpn(rpn, (cell_t*)strdup("*"));
 
+  // create result variable
+  char result_variable_name[100];
+  sprintf(result_variable_name, "@result_%d", get_size_of_rpn(rpn));
+  type_t result_variable_datatype = real;
+  insert_variable(&symbol_table, result_variable_name, result_variable_datatype);
+
   puts(rule[23]);
 } | TERM op_div FACTOR {
   add_cell_to_rpn(rpn, (cell_t*)strdup("/"));
+
+  // create result variable
+  char result_variable_name[100];
+  sprintf(result_variable_name, "@result_%d", get_size_of_rpn(rpn));
+  type_t result_variable_datatype = real;
+  insert_variable(&symbol_table, result_variable_name, result_variable_datatype);
 
   puts(rule[24]);
 } | FACTOR {
@@ -326,7 +354,6 @@ CONSTANT: int_constant {
   insert_real(&symbol_table, real);
 
   sprintf(actual_item, "_r_%lf", real);
-
   strcpy(actual_item, get_string_name(actual_item));
 
   if (show == TRUE) {
@@ -338,7 +365,10 @@ CONSTANT: int_constant {
   char identifier[30];
   strcpy(identifier, delete_quotes($1));
   strcpy(actual_item, strdup(identifier));
-  insert_string(&symbol_table, strdup(actual_item));
+
+  if (strcmp(identifier, "") != 0) {
+    insert_string(&symbol_table, strdup(actual_item));
+  }
 
   sprintf(actual_item, "_s_%s", get_string_name(actual_item));
 
@@ -352,7 +382,10 @@ CONSTANT: int_constant {
 
 LENGTH: fun_long open_parenthesis LIST close_parenthesis {
   char item_quantity_str[100];
-  sprintf(item_quantity_str, "%d", item_quantity);
+  
+  insert_integer(&symbol_table, item_quantity);
+  sprintf(item_quantity_str, "_i_%d", item_quantity);
+  strcpy(item_quantity_str, get_string_name(item_quantity_str));
 
   add_cell_to_rpn(rpn, (cell_t*)strdup(item_quantity_str));
 
@@ -421,12 +454,17 @@ DECISION: IF_EVALUATOR CODE op_endif {
 
   sprintf(target_cell, "#%d", actual_cell_num + 1);
 
+  add_element_to_list(&et_list, actual_cell_num + 1);
+
   set_cell_from_rpn(rpn, condition_jump_cell, (cell_t*)strdup(target_cell));
 
   // when there is AND operator
   if (pop_from_stack(is_and_stack) == TRUE) {
     condition_jump_cell = pop_from_stack(cell_stack);
     sprintf(target_cell, "#%d", actual_cell_num + 1);
+
+    add_element_to_list(&et_list, actual_cell_num + 1);
+    
     set_cell_from_rpn(rpn, condition_jump_cell, (cell_t*)strdup(target_cell));
   }
 
@@ -443,7 +481,9 @@ DECISION: IF_EVALUATOR CODE op_endif {
   char target_cell[5];
 
   sprintf(target_cell, "#%d", actual_cell_num + 1);
-
+  
+  add_element_to_list(&et_list, actual_cell_num + 1);
+    
   set_cell_from_rpn(rpn, start_cell, (cell_t*)strdup(target_cell));
 
   push_to_stack(cell_stack, get_size_of_rpn(rpn));
@@ -456,6 +496,8 @@ DECISION: IF_EVALUATOR CODE op_endif {
 
   sprintf(target_cell, "#%d", actual_cell_num + 1);
 
+  add_element_to_list(&et_list, actual_cell_num + 1);
+    
   set_cell_from_rpn(rpn, start_cell, (cell_t*)strdup(target_cell));
 
   puts(rule[42]);
@@ -536,6 +578,9 @@ CONDITION: COMPARATION op_and {
   // Change jump of first condition
   char target_cell[5];
   sprintf(target_cell, "#%d", get_size_of_rpn(rpn) + 1);
+  
+  add_element_to_list(&et_list, get_size_of_rpn(rpn) + 1);
+    
   set_cell_from_rpn(rpn, first_condition_jump_cell, (cell_t*)strdup(target_cell));
 
   push_to_stack(is_and_stack, FALSE);
@@ -600,18 +645,27 @@ ITERATION: WHILE_EVALUATOR {
   // change jump to end of while statement
   int condition_jump_cell = pop_from_stack(cell_stack);
   sprintf(target_cell, "#%d", actual_cell_num + 1);
+  
+  add_element_to_list(&et_list, actual_cell_num + 1);
+    
   set_cell_from_rpn(rpn, condition_jump_cell, (cell_t*)strdup(target_cell));
 
   // when there is AND operator
   if (pop_from_stack(is_and_stack) == TRUE) {
     condition_jump_cell = pop_from_stack(cell_stack);
     sprintf(target_cell, "#%d", actual_cell_num + 1);
+    
+    add_element_to_list(&et_list, actual_cell_num + 1);
+    
     set_cell_from_rpn(rpn, condition_jump_cell, (cell_t*)strdup(target_cell));
   }
 
   // change jump to start of while statement
   int start_jump_cell = pop_from_stack(cell_stack);
   sprintf(target_cell, "#%d", start_jump_cell);
+  
+  add_element_to_list(&et_list, start_jump_cell);
+
   set_cell_from_rpn(rpn, actual_cell_num, (cell_t*)strdup(target_cell));
 
   puts(rule[54]);
@@ -624,11 +678,17 @@ ITERATION: WHILE_EVALUATOR {
   int actual_item_num = 1;
   char actual_item_num_str[100];
   char* identifier = strdup($2);
+  
+  insert_integer(&symbol_table, actual_item_num);
+  sprintf(actual_item_num_str, "_i_%d", actual_item_num);
+  strcpy(actual_item_num_str, get_string_name(actual_item_num_str));
+  add_cell_to_rpn(rpn, (cell_t*)strdup(actual_item_num_str));
 
-  printf("identifier: %s\n", identifier);
+  // insert special while @act variable
+  insert_variable(&symbol_table, "@act", integer);
 
-  add_cell_to_rpn(rpn, (cell_t*)strdup("1"));
   add_cell_to_rpn(rpn, (cell_t*)strdup("@act"));
+
   add_cell_to_rpn(rpn, (cell_t*)strdup(":="));
 
   add_cell_to_rpn(rpn, (cell_t*)strdup("ET"));
@@ -643,8 +703,12 @@ ITERATION: WHILE_EVALUATOR {
     add_cell_to_rpn(rpn, (cell_t*)strdup(":="));
 
     if (actual_item_num < item_quantity) {
-      sprintf(actual_item_num_str, "%d", actual_item_num);
       add_cell_to_rpn(rpn, (cell_t*)strdup("@act"));
+
+      insert_integer(&symbol_table, actual_item_num);
+      sprintf(actual_item_num_str, "_i_%d", actual_item_num);
+      strcpy(actual_item_num_str, get_string_name(actual_item_num_str));
+
       add_cell_to_rpn(rpn, (cell_t*)strdup(actual_item_num_str));
 
       add_cell_to_rpn(rpn, (cell_t*)strdup("CMP"));
@@ -660,16 +724,31 @@ ITERATION: WHILE_EVALUATOR {
   push_to_stack(cell_stack, get_size_of_rpn(rpn));
 } CODE op_endwhile {
   add_cell_to_rpn(rpn, (cell_t*)strdup("@act"));
-  add_cell_to_rpn(rpn, (cell_t*)strdup("1"));
+
+  int INCREMENT = 1;
+  char increment_str[100];
+  
+  insert_integer(&symbol_table, INCREMENT);
+  sprintf(increment_str, "_i_%d", INCREMENT);
+  strcpy(increment_str, get_string_name(increment_str));
+  add_cell_to_rpn(rpn, (cell_t*)strdup(increment_str));
+
   add_cell_to_rpn(rpn, (cell_t*)strdup("+"));
+
+  // create result variable
+  char result_variable_name[100];
+  sprintf(result_variable_name, "@result_%d", get_size_of_rpn(rpn));
+  type_t result_variable_datatype = real;
+  insert_variable(&symbol_table, result_variable_name, result_variable_datatype);
+
   add_cell_to_rpn(rpn, (cell_t*)strdup("@act"));
   add_cell_to_rpn(rpn, (cell_t*)strdup(":="));
 
   char item_quantity_str[100];
 
-  sprintf(item_quantity_str, "%d", item_quantity);
-
-  printf("item_quantity: %d\n", item_quantity);
+  insert_integer(&symbol_table, item_quantity);
+  sprintf(item_quantity_str, "_i_%d", item_quantity);
+  strcpy(item_quantity_str, get_string_name(item_quantity_str));
 
   add_cell_to_rpn(rpn, (cell_t*)strdup("@act"));
   add_cell_to_rpn(rpn, (cell_t*)strdup(item_quantity_str));
@@ -685,11 +764,16 @@ ITERATION: WHILE_EVALUATOR {
 
     if (stack_is_empty(cell_stack)) {
       sprintf(target_cell, "#%d", cell + 1);
-      printf("target_cell: #%d\n", cell + 1);
+      
+    add_element_to_list(&et_list, cell + 1);
+    
       add_cell_to_rpn(rpn, (cell_t*)strdup(target_cell));
     }
     else {
       sprintf(target_cell, "#%d", code_cell + 1);
+
+      add_element_to_list(&et_list, code_cell + 1);
+    
       set_cell_from_rpn(rpn, cell, (cell_t*)strdup(target_cell));
     }
   }
@@ -738,6 +822,7 @@ int main(int argc,char *argv[]) {
   while_queue = create_queue();
   cell_stack = create_stack();
   is_and_stack = create_stack();
+  create_int_list(&et_list);
 
   rpn = create_rpn();
 

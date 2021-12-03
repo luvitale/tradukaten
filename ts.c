@@ -73,6 +73,27 @@ int insert_order(table_t *p, char *name, type_t datatype, char *value, int lengt
   return SUCCESS;
 }
 
+char *replace_char(char *str, char find, char replace)
+{
+  char *current_pos = strchr(str, find);
+  while (current_pos)
+  {
+    *current_pos = replace;
+    current_pos = strchr(current_pos, find);
+  }
+  return str;
+}
+
+char *get_string_name(char *str)
+{
+  char *name = (char *)malloc(sizeof(char) * 100);
+  sprintf(name, "%s", str);
+  replace_char(name, ' ', '_');
+  replace_char(name, '.', '_');
+  replace_char(name, ':', '@');
+  return name;
+}
+
 int insert_integer(table_t *p, int lex)
 {
   int result = -1;
@@ -101,6 +122,8 @@ int insert_real(table_t *p, double lex)
   sprintf(name, "_r_%lf", lex);
   sprintf(lexeme, "%lf", lex);
 
+  sprintf(name, "%s", replace_char(name, '.', '_'));
+
   result = insert_order(p, name, constant_real, lexeme, 0);
 
   if (result == DUPLICATED)
@@ -109,24 +132,6 @@ int insert_real(table_t *p, double lex)
   }
 
   return SUCCESS;
-}
-char *replace_char(char *str, char find, char replace)
-{
-  char *current_pos = strchr(str, find);
-  while (current_pos)
-  {
-    *current_pos = replace;
-    current_pos = strchr(current_pos, find);
-  }
-  return str;
-}
-
-char *get_string_name(char *str)
-{
-  char *name = (char *)malloc(sizeof(char) * 100);
-  sprintf(name, "%s", str);
-  replace_char(name, ' ', '_');
-  return name;
 }
 
 int insert_string(table_t *p, char *lex)

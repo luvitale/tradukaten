@@ -21,11 +21,14 @@ if (total = 0.0 && akum >= 1)
   total := akum * (2 + 1.14);
   akum := akum + 1;
 
-  display "korekte";
+  display "Korekte";
 
   */ string out of range /*
   */ rezult := "korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte korekte"; /*
 endif
+
+display "";
+display "";
 
 if (akum >= 10 || akum >= 30)
   if (total == 10.0)
@@ -44,11 +47,20 @@ while (akum <= 10)
 endwhile
 
 while nomo in ["Tero", "Luno", "Marso"] do
-  display "Saluton";
+  display "Saluton ";
   display nomo;
+  display "";
 endwhile
 
 display "Saluton Mondo";
+
+display "";
+display "";
+
+display "Enigu nomon: ";
 get nomo;
-display "Saluton";
+
+display "";
+
+display "Saluton ";
 display nomo;

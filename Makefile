@@ -31,7 +31,7 @@ endif
 
 all: tradukaten.app
 
-%.app: lex.yy.c y.tab.c ts.c rpn.c utils/stack.c utils/queue.c utils/asm_stack.c utils/int_list.c
+%.app: lex.yy.c y.tab.c ts.c rpn.c utils/*.c
 	$(CC) -o $*.$(EXT) $? -fcommon
 
 lex.yy.c: Lexico.l

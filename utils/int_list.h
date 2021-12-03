@@ -14,7 +14,7 @@ typedef struct List
   int size;
 } int_list_t;
 
-int_list_t *create_int_list();
+void create_int_list(int_list_t *);
 void add_element_to_list(int_list_t *list, int element);
 int is_element_in_list(int_list_t *list, int element);
 void delete_element_from_list(int_list_t *list, int index);

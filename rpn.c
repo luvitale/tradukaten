@@ -17,7 +17,6 @@ rpn_t *create_rpn()
   rpn->size = 0;
   rpn->capacity = INITIAL_CAPACITY;
   rpn->cell = malloc(sizeof(cell_t) * rpn->capacity);
-  et_list = create_int_list();
   return rpn;
 }
 
@@ -112,8 +111,11 @@ void free_rpn(rpn_t *rpn)
   free(rpn);
 }
 
-void do_binary_operation(rpn_t *rpn, table_t *symbol_table, FILE *fp, stack_structure_t *cell_stack, char *operation, char *op1, char *op2)
+void do_binary_operation(rpn_t *rpn, table_t *symbol_table, FILE *fp, stack_structure_t *cell_stack, char *operation, int num_cell)
 {
+  char op1[100];
+  char op2[100];
+
   pop_from_asm_stack(cell_stack, op2);
   pop_from_asm_stack(cell_stack, op1);
 
@@ -146,7 +148,7 @@ void do_binary_operation(rpn_t *rpn, table_t *symbol_table, FILE *fp, stack_stru
 
   char result[100];
 
-  strcpy(result, "@result");
+  sprintf(result, "@result_%d", num_cell);
 
   fprintf(
       fp,
@@ -192,8 +194,15 @@ char *get_asm_jump(char *branch)
   }
 }
 
+void add_asm_includes(FILE *fp)
+{
+  fprintf(fp, "include macros2.asm\n");
+  fprintf(fp, "include number.asm\n");
+}
+
 void add_asm_header(FILE *fp)
 {
+  add_asm_includes(fp);
   fprintf(fp, ".MODEL LARGE\n");
   fprintf(fp, ".386\n");
   fprintf(fp, ".STACK 200h\n");
@@ -209,11 +218,22 @@ void add_asm_data(FILE *fp, table_t *symbol_table)
 
   while (symbol)
   {
+    char str_length[20];
+    char str_value[102];
+
+    sprintf(str_length, ", \'$\', %d dup (?)", symbol->datatype == constant_str ? symbol->length : 100);
+    sprintf(str_value, "\"%s\"", symbol->value);
+
     fprintf(fp,
-            "%-30s %-5s %-30s\n",
+            "%-40s %-5s %-102s %s\n",
             symbol->name,
             symbol->datatype == constant_str || symbol->datatype == str ? "db" : "dd",
-            symbol->datatype == integer || symbol->datatype == real ? "?" : symbol->value);
+            symbol->datatype == integer || symbol->datatype == real ?
+              "?" :
+              symbol->datatype == str ?
+                "\"\"" : symbol->datatype == constant_str ?
+                  str_value : symbol->value,
+            symbol->datatype == constant_str || symbol->datatype == str ? str_length : "");
     symbol = symbol->next;
   }
 
@@ -235,10 +255,38 @@ void add_asm_start_code(FILE *fp)
 
 void add_asm_end_code(FILE *fp)
 {
-  fprintf(fp, "END START;\n");
+  fprintf(fp, "\tMOV AX, 4C00h\n");
+  fprintf(fp, "\tINT 21h\n");
+
+  fprintf(fp, "\tstrlen proc near\n");
+  fprintf(fp, "\t\tmov bx, 0\n");
+  fprintf(fp, "\t\t@strl01:\n");
+  fprintf(fp, "\t\tcmp BYTE PTR [si+bx],'$'\n");
+  fprintf(fp, "\t\tje @strend\n");
+  fprintf(fp, "\t\tinc bx\n");
+  fprintf(fp, "\t\tjmp @strl01\n");
+  fprintf(fp, "\t\t@strend:\n");
+  fprintf(fp, "\t\tret\n");
+  fprintf(fp, "\tstrlen endp\n");
+
+  fprintf(fp, "\tstrcpy proc near\n");
+  fprintf(fp, "\t\tcall strlen\n");
+  fprintf(fp, "\t\tcmp bx , 100\n");
+  fprintf(fp, "\t\tjle @ok_size_copy\n");
+  fprintf(fp, "\t\tmov bx , 100\n");
+  fprintf(fp, "\t\t@ok_size_copy:\n");
+  fprintf(fp, "\t\tmov cx , bx\n");
+  fprintf(fp, "\t\tcld\n");
+  fprintf(fp, "\t\trep movsb\n");
+  fprintf(fp, "\t\tmov al , '$'\n");
+  fprintf(fp, "\t\tmov byte ptr[di],al\n");
+  fprintf(fp, "\t\tret\n");
+  fprintf(fp, "\tstrcpy endp\n\n");
+
+  fprintf(fp, "END START;");
 }
 
-void rpn_assembly(rpn_t *rpn, table_t *symbol_table)
+void rpn_assemble(rpn_t *rpn, table_t *symbol_table, int_list_t *et_list)
 {
   stack_structure_t cell_stack;
   create_asm_stack(&cell_stack, sizeof(char) * 100);
@@ -278,11 +326,22 @@ void rpn_assembly(rpn_t *rpn, table_t *symbol_table)
       pop_from_asm_stack(&cell_stack, op1);
       pop_from_asm_stack(&cell_stack, op2);
 
-      fprintf(
+      if (strstr(op2, "_s_") != NULL) {
+        fprintf(fp, "\tMOV SI, OFFSET %s\n", op2);
+        fprintf(fp, "\tMOV DI, OFFSET %s\n", op1);
+        fprintf(fp, "\tCALL strcpy\n");
+      }
+      else {
+        fprintf(
           fp,
-          "\tMOV %s %s\n",
-          op1,
+          "\tFLD %s\n",
           op2);
+
+        fprintf(
+            fp,
+            "\tFSTP %s\n",
+            op1);
+      }
     }
     else if (strcmp(cell, "ET") == 0)
     {
@@ -368,16 +427,21 @@ void rpn_assembly(rpn_t *rpn, table_t *symbol_table)
     }
     else if (strcmp(cell, "+") == 0 || strcmp(cell, "-") == 0 || strcmp(cell, "*") == 0 || strcmp(cell, "/") == 0)
     {
-      do_binary_operation(rpn, symbol_table, fp, &cell_stack, cell, op1, op2);
+      do_binary_operation(rpn, symbol_table, fp, &cell_stack, cell, i);
     }
     else if (strcmp(cell, "DSP") == 0)
     {
       pop_from_asm_stack(&cell_stack, op1);
 
-      fprintf(
-          fp,
-          "\tDSP %s\n",
-          op1);
+      if (strcmp(op1, "_s_") == 0) {
+        fprintf(fp, "\tnewLine\n", op1);
+      }
+      else {
+        fprintf(
+            fp,
+            "\tdisplayString %s\n",
+            op1);
+      }
     }
     else if (strcmp(cell, "GET") == 0)
     {
@@ -385,7 +449,7 @@ void rpn_assembly(rpn_t *rpn, table_t *symbol_table)
 
       fprintf(
           fp,
-          "\tGET %s\n",
+          "\tgetString %s\n",
           op1);
     }
     // id || cte
@@ -396,6 +460,7 @@ void rpn_assembly(rpn_t *rpn, table_t *symbol_table)
   }
 
   fprintf(fp, "\n");
+  fprintf(fp, "@ET%d:\n", i);
 
   add_asm_end_code(fp);
 

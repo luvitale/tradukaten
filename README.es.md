@@ -57,3 +57,12 @@ gcc lex.yy.c y.tab.c ts.c rpn.c utils/stack.c utils/queue.c utils/asm_stack.c ut
 ```
 make test
 ```
+
+### Ensamblar
+
+```
+tasm Final.asm
+tlink /3 /x /v Final.obj macros2.obj number.obj
+pause
+Final.exe
+```

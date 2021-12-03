@@ -41,7 +41,7 @@ make
 ```
 flex -o lex.yy.c Lexico.l
 bison -dyv Sintactico.y
-gcc lex.yy.c y.tab.c ts.c rpn.c utils/stack.c utils/queue.c utils/asm_stack.c utils/int_list.c -o tradukaten.exe -fcommon
+gcc lex.yy.c y.tab.c ts.c rpn.c utils/*.c -o tradukaten.exe -fcommon
 ```
 
 Or
@@ -49,11 +49,20 @@ Or
 ```
 flex -o lex.yy.c Lexico.l
 bison -dyv Sintactico.y
-gcc lex.yy.c y.tab.c ts.c rpn.c utils/stack.c utils/queue.c utils/asm_stack.c utils/int_list.c -o tradukaten.app -fcommon
+gcc lex.yy.c y.tab.c ts.c rpn.c utils/*.c -o tradukaten.app -fcommon
 ```
 
 ### Test
 
 ```
 make test
+```
+
+### Assemble
+
+```
+tasm Final.asm
+tlink /3 /x /v Final.obj macros2.obj number.obj
+pause
+Final.exe
 ```

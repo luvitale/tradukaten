@@ -7,11 +7,10 @@
  * 
  * @return int_list_t* 
  */
-int_list_t *create_int_list()
+void create_int_list(int_list_t *list)
 {
-  int_list_t *list = malloc(sizeof(int_list_t));
+  list = malloc(sizeof(int_list_t));
   list->size = 0;
-  return list;
 }
 
 /**
