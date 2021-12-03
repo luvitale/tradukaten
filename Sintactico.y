@@ -24,7 +24,7 @@
   char *yytext;
 
   // Rules
-  char *rule[56] = {
+  char *rule[57] = {
     "R0. PROGRAM -> CODE",
     "R1. CODE -> CODE BLOCK",
     "R2. CODE -> BLOCK",
@@ -67,20 +67,21 @@
     "R39. INPUT -> get id",
     "R40. OUTPUT -> display EXPRESSION",
     "R41. DECISION -> IF_EVALUATOR CODE endif",
-    "R41. DECISION -> IF_EVALUATOR CODE else CODE endif",
-    "R42. CONDITION -> CONDITION && comparator",
+    "R42. DECISION -> IF_EVALUATOR CODE else CODE endif",
     "R43. IF_EVALUATOR -> if ( CONDITION )",
-    "R44. CONDITION -> CONDITION || comparator",
-    "R45. CONDITION -> comparator",
-    "R46. comparator -> ITEM COMPARATOR ITEM",
-    "R47. COMPARATOR -> ==",
-    "R48. COMPARATOR -> <",
-    "R49. COMPARATOR -> <=",
-    "R50. COMPARATOR -> >",
-    "R51. COMPARATOR -> >=",
-    "R52. COMPARATOR -> !=",
-    "R53. ITERATION -> while ( CONDITION ) CODE endwhile",
-    "R54. ITERATION -> while id in LIST do CODE endwhile",
+    "R44. CONDITION -> CONDITION && comparator",
+    "R45. CONDITION -> CONDITION || comparator",
+    "R46. CONDITION -> comparator",
+    "R47. comparator -> ITEM COMPARATOR ITEM",
+    "R48. COMPARATOR -> ==",
+    "R49. COMPARATOR -> <",
+    "R50. COMPARATOR -> <=",
+    "R51. COMPARATOR -> >",
+    "R52. COMPARATOR -> >=",
+    "R53. COMPARATOR -> !=",
+    "R54. ITERATION -> WHILE_EVALUATOR ( CONDITION ) CODE endwhile",
+    "R55. ITERATION -> WHILE_EVALUATOR id in LIST do CODE endwhile",
+    "R56. WHILE_EVALUATOR -> while ( CONDITION )",
   };
 
   // Symbol Table
@@ -271,11 +272,11 @@ ASSIGNMENT: id op_assign ASSIGNMENT {
 };
 
 EXPRESSION: EXPRESSION op_sum TERM {
-  add_cell_to_rpn(rpn, (cell_t*)"+");
+  add_cell_to_rpn(rpn, (cell_t*)strdup("+"));
 
   puts(rule[20]);
 } | EXPRESSION op_sub TERM {
-  add_cell_to_rpn(rpn, (cell_t*)"-");
+  add_cell_to_rpn(rpn, (cell_t*)strdup("-"));
 
   puts(rule[21]);
 } | TERM {
@@ -283,11 +284,11 @@ EXPRESSION: EXPRESSION op_sum TERM {
 };
 
 TERM: TERM op_mult FACTOR {
-  add_cell_to_rpn(rpn, (cell_t*)"*");
+  add_cell_to_rpn(rpn, (cell_t*)strdup("*"));
 
   puts(rule[23]);
 } | TERM op_div FACTOR {
-  add_cell_to_rpn(rpn, (cell_t*)"/");
+  add_cell_to_rpn(rpn, (cell_t*)strdup("/"));
 
   puts(rule[24]);
 } | FACTOR {
@@ -574,13 +575,7 @@ COMPARATOR: op_eq {
   puts(rule[53]);
 };
 
-
-ITERATION: op_while {
-  // add start etiquete
-  add_cell_to_rpn(rpn, (cell_t*)strdup("ET"));
-  int actual_cell_num = get_size_of_rpn(rpn);
-  push_to_stack(cell_stack, actual_cell_num);
-} open_parenthesis CONDITION close_parenthesis {
+ITERATION: WHILE_EVALUATOR {
   // Single condition
   if (strcmp(logical_operator, "\0") == 0) {
     strcpy(branch, strdup(get_opposite_branch(comparator)));
@@ -593,8 +588,6 @@ ITERATION: op_while {
 
     push_to_stack(is_and_stack, FALSE);
   }
-
-  puts(rule[54]);
 } CODE op_endwhile {
   // define jump to start of while statement
   char target_cell[5];
@@ -624,6 +617,7 @@ ITERATION: op_while {
   puts(rule[54]);
 } | op_while id op_in {
   is_while_loop = TRUE;
+  printf("is_while_loop: %d\n", is_while_loop);
 } LIST op_do {
   is_while_loop = FALSE;
 
@@ -631,9 +625,13 @@ ITERATION: op_while {
   char actual_item_num_str[100];
   char* identifier = strdup($2);
 
+  printf("identifier: %s\n", identifier);
+
   add_cell_to_rpn(rpn, (cell_t*)strdup("1"));
   add_cell_to_rpn(rpn, (cell_t*)strdup("@act"));
   add_cell_to_rpn(rpn, (cell_t*)strdup(":="));
+
+  add_cell_to_rpn(rpn, (cell_t*)strdup("ET"));
 
   push_to_stack(cell_stack, get_size_of_rpn(rpn));
 
@@ -671,6 +669,8 @@ ITERATION: op_while {
 
   sprintf(item_quantity_str, "%d", item_quantity);
 
+  printf("item_quantity: %d\n", item_quantity);
+
   add_cell_to_rpn(rpn, (cell_t*)strdup("@act"));
   add_cell_to_rpn(rpn, (cell_t*)strdup(item_quantity_str));
   add_cell_to_rpn(rpn, (cell_t*)strdup("CMP"));
@@ -685,6 +685,7 @@ ITERATION: op_while {
 
     if (stack_is_empty(cell_stack)) {
       sprintf(target_cell, "#%d", cell + 1);
+      printf("target_cell: #%d\n", cell + 1);
       add_cell_to_rpn(rpn, (cell_t*)strdup(target_cell));
     }
     else {
@@ -694,6 +695,15 @@ ITERATION: op_while {
   }
 
   puts(rule[55]);
+};
+
+WHILE_EVALUATOR: op_while open_parenthesis {
+  // add start etiquete
+  add_cell_to_rpn(rpn, (cell_t*)strdup("ET"));
+  int actual_cell_num = get_size_of_rpn(rpn);
+  push_to_stack(cell_stack, actual_cell_num);
+} CONDITION close_parenthesis {
+  puts(rule[56]);
 };
 %%
 

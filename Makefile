@@ -40,7 +40,7 @@ lex.yy.c: Lexico.l
 y.tab.c: Sintactico.y
 	$(BISON) -o $@ -dyv $<
 
-test: tradukaten.app
+test:
 	./tradukaten.$(EXT) ./tests/prueba.txt
 
 clean:

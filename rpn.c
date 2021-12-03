@@ -60,16 +60,6 @@ void add_cell_to_rpn(rpn_t *rpn, cell_t *content)
     rpn->capacity *= 2;
     rpn->cell = realloc(rpn->cell, sizeof(cell_t) * rpn->capacity);
   }
-  // When the cell is a JMP
-  if (strstr((char *)content, "#"))
-  {
-    char num_cell_str[100];
-    sprintf(num_cell_str, "%s", (char *)&content[1]);
-
-    int num_cell = atoi(num_cell_str);
-
-    add_element_to_list(et_list, num_cell);
-  }
   rpn->cell[rpn->size] = content;
   rpn->size++;
 }
@@ -308,8 +298,11 @@ void rpn_assembly(rpn_t *rpn, table_t *symbol_table)
     }
     else if (strstr(cell, "#") != NULL)
     {
-      char asm_jump[100];
-      pop_from_asm_stack(&cell_stack, asm_jump);
+      char cell_content[100];
+      char *asm_jump;
+      pop_from_asm_stack(&cell_stack, cell_content);
+
+      asm_jump = get_asm_jump(cell_content);
 
       char cell_num_str[100];
       sprintf(cell_num_str, "%s", &cell[1]);
