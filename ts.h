@@ -39,7 +39,7 @@ typedef node_t *table_t;
 
 void create_list(table_t *p);
 
-type_t get_lex_type(table_t *, void *);
+type_t get_lex_type(table_t *, char *);
 
 int insert_order(table_t *p, char *name, type_t datatype, char *value, int length);
 int insert_variable(table_t *p, char *name, type_t datatype);

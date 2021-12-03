@@ -62,7 +62,7 @@ make test
 
 ```
 tasm Final.asm
-tlink /3 /x /v Final.obj macros2.obj number.obj
+tlink /3 /x /v Final.obj numbers.obj
 pause
 Final.exe
 ```

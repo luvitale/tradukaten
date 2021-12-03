@@ -35,12 +35,12 @@ void create_list(table_t *p)
   *p = NULL;
 }
 
-type_t get_lex_type(table_t *p, void *lex)
+type_t get_lex_type(table_t *p, char *name)
 {
   table_t l = *p;
   while (l != NULL)
   {
-    if (l->value == lex)
+    if (strcmp(l->name, name) == 0)
       return l->datatype;
     l = l->next;
   }

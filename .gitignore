@@ -7,7 +7,7 @@ ts.txt
 intermedia.txt
 
 Final.asm
-Final.obj
+*.obj
 
 *.app
 *.exe

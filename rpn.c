@@ -131,19 +131,19 @@ void do_binary_operation(rpn_t *rpn, table_t *symbol_table, FILE *fp, stack_stru
 
   if (strcmp(operation, "+") == 0)
   {
-    fprintf(fp, "\tFADD\n");
+    fprintf(fp, "\tFADD ; Add\n");
   }
   else if (strcmp(operation, "-") == 0)
   {
-    fprintf(fp, "\tFSUB\n");
+    fprintf(fp, "\tFSUB ; Substraction\n");
   }
   else if (strcmp(operation, "*") == 0)
   {
-    fprintf(fp, "\tFMUL\n");
+    fprintf(fp, "\tFMUL ; Multiplication\n");
   }
   else if (strcmp(operation, "/") == 0)
   {
-    fprintf(fp, "\tFDIV\n");
+    fprintf(fp, "\tFDIV ; Division\n");
   }
 
   char result[100];
@@ -152,8 +152,10 @@ void do_binary_operation(rpn_t *rpn, table_t *symbol_table, FILE *fp, stack_stru
 
   fprintf(
       fp,
-      "\tFSTP %s\n",
+      "\tFSTP %s ; Assign result of operation\n",
       result);
+
+  fprintf(fp, "\n");
 
   push_to_asm_stack(cell_stack, result);
 }
@@ -194,10 +196,47 @@ char *get_asm_jump(char *branch)
   }
 }
 
+char *get_asm_comment(char *branch)
+{
+  if (strcmp(branch, "BLT") == 0)
+  {
+    return "Jump if not above or equal";
+  }
+  else if (strcmp(branch, "BLE") == 0)
+  {
+    return "Jump if not above";
+  }
+  else if (strcmp(branch, "BGT") == 0)
+  {
+    return "Jump if not below or equal";
+  }
+  else if (strcmp(branch, "BGE") == 0)
+  {
+    return "Jump if not below";
+  }
+  else if (strcmp(branch, "BEQ") == 0)
+  {
+    return "Jump if equal";
+  }
+  else if (strcmp(branch, "BNE") == 0)
+  {
+    return "Jump if not equal";
+  }
+  else if (strcmp(branch, "BI") == 0)
+  {
+    return "Inconditional jump";
+  }
+  else
+  {
+    return "";
+  }
+}
+
 void add_asm_includes(FILE *fp)
 {
   fprintf(fp, "include macros2.asm\n");
   fprintf(fp, "include number.asm\n");
+  fprintf(fp, "\n");
 }
 
 void add_asm_header(FILE *fp)
@@ -249,15 +288,16 @@ void add_asm_start_code(FILE *fp)
   fprintf(fp, "\tMOV AX, @DATA\n");
   fprintf(fp, "\tMOV DS, AX\n");
   fprintf(fp, "\tMOV es, AX\n");
-  fprintf(fp, "\tFINIT\n");
+  fprintf(fp, "\tFINIT ; Initialize coprocessor\n");
   fprintf(fp, "\n");
 }
 
 void add_asm_end_code(FILE *fp)
 {
-  fprintf(fp, "\tMOV AX, 4C00h\n");
-  fprintf(fp, "\tINT 21h\n");
-
+  fprintf(fp, "FINAL:\n");
+  fprintf(fp, "\tMOV AX, 4C00h ; Exit\n");
+  fprintf(fp, "\tINT 21h ; Send interrupt\n");
+  fprintf(fp, "\tFFREE\n");
   fprintf(fp, "\tstrlen proc near\n");
   fprintf(fp, "\t\tmov bx, 0\n");
   fprintf(fp, "\t\t@strl01:\n");
@@ -282,8 +322,7 @@ void add_asm_end_code(FILE *fp)
   fprintf(fp, "\t\tmov byte ptr[di],al\n");
   fprintf(fp, "\t\tret\n");
   fprintf(fp, "\tstrcpy endp\n\n");
-
-  fprintf(fp, "END START;");
+  fprintf(fp, "END START ;");
 }
 
 void rpn_assemble(rpn_t *rpn, table_t *symbol_table, int_list_t *et_list)
@@ -327,11 +366,15 @@ void rpn_assemble(rpn_t *rpn, table_t *symbol_table, int_list_t *et_list)
       pop_from_asm_stack(&cell_stack, op2);
 
       if (strstr(op2, "_s_") != NULL) {
+        fprintf(fp, "\t; Assign string to variable\n");
         fprintf(fp, "\tMOV SI, OFFSET %s\n", op2);
         fprintf(fp, "\tMOV DI, OFFSET %s\n", op1);
         fprintf(fp, "\tCALL strcpy\n");
+        fprintf(fp, "\n");
       }
       else {
+        fprintf(fp, "\t; Assign to variable\n");
+
         fprintf(
           fp,
           "\tFLD %s\n",
@@ -341,6 +384,8 @@ void rpn_assemble(rpn_t *rpn, table_t *symbol_table, int_list_t *et_list)
             fp,
             "\tFSTP %s\n",
             op1);
+
+        fprintf(fp, "\n");
       }
     }
     else if (strcmp(cell, "ET") == 0)
@@ -359,9 +404,11 @@ void rpn_assemble(rpn_t *rpn, table_t *symbol_table, int_list_t *et_list)
     {
       char cell_content[100];
       char *asm_jump;
+      char *asm_comment;
       pop_from_asm_stack(&cell_stack, cell_content);
 
       asm_jump = get_asm_jump(cell_content);
+      asm_comment = get_asm_comment(cell_content);
 
       char cell_num_str[100];
       sprintf(cell_num_str, "%s", &cell[1]);
@@ -370,14 +417,21 @@ void rpn_assemble(rpn_t *rpn, table_t *symbol_table, int_list_t *et_list)
 
       fprintf(
           fp,
-          "\t%s @ET%d\n",
+          "\t%s @ET%d ; %s\n",
           asm_jump,
-          num_cell);
+          num_cell,
+          asm_comment);
+      
+      fprintf(fp, "\n");
     }
     else if (strcmp(cell, "CMP") == 0)
     {
       pop_from_asm_stack(&cell_stack, op2);
       pop_from_asm_stack(&cell_stack, op1);
+
+      fprintf(
+          fp,
+          "\t; Compare\n");
 
       fprintf(
           fp,
@@ -433,13 +487,22 @@ void rpn_assemble(rpn_t *rpn, table_t *symbol_table, int_list_t *et_list)
     {
       pop_from_asm_stack(&cell_stack, op1);
 
-      if (strcmp(op1, "_s_") == 0) {
+      type_t cell_type = get_lex_type(symbol_table, op1);
+
+      if (cell_type == integer || cell_type == real || cell_type == constant_int || cell_type == constant_real)
+      {
+        fprintf(
+            fp,
+            "\tdisplayFloat %s ; Print number\n",
+            op1);
+      }
+      else if (strcmp(op1, "_s_") == 0) {
         fprintf(fp, "\tnewLine\n", op1);
       }
       else {
         fprintf(
             fp,
-            "\tdisplayString %s\n",
+            "\tdisplayString %s ; Print string\n",
             op1);
       }
     }
@@ -447,10 +510,21 @@ void rpn_assemble(rpn_t *rpn, table_t *symbol_table, int_list_t *et_list)
     {
       pop_from_asm_stack(&cell_stack, op1);
 
-      fprintf(
-          fp,
-          "\tgetString %s\n",
-          op1);
+      type_t cell_type = get_lex_type(symbol_table, op1);
+
+      if (cell_type == integer || cell_type == real || cell_type == constant_int || cell_type == constant_real)
+      {
+        fprintf(
+            fp,
+            "\tgetFloat %s ; Get number\n",
+            op1);
+      }
+      else {
+        fprintf(
+            fp,
+            "\tgetString %s ; Get string\n",
+            op1);
+      }
     }
     // id || cte
     else
@@ -460,7 +534,9 @@ void rpn_assemble(rpn_t *rpn, table_t *symbol_table, int_list_t *et_list)
   }
 
   fprintf(fp, "\n");
+  fprintf(fp, "; End\n");
   fprintf(fp, "@ET%d:\n", i);
+  fprintf(fp, "\n");
 
   add_asm_end_code(fp);
 
